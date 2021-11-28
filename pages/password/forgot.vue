@@ -48,18 +48,20 @@ export default {
           this.$message.success(res.data.message);
           await this.$router.push('/login');
         } catch (error) {
-          const errors = error.response.data.errors;
-          if (errors !== undefined) {
-            this.form.setFields({
-              'email': {
-                value : values.email,
-                errors: errors.email !== undefined ? [
-                  {
-                    "message": errors.email,
-                  }
-                ] : null
-              },
-            });
+          if (error.response !== undefined){
+            const errors = error.response.data.errors;
+            if (errors !== undefined) {
+              this.form.setFields({
+                'email': {
+                  value : values.email,
+                  errors: errors.email !== undefined ? [
+                    {
+                      "message": errors.email,
+                    }
+                  ] : null
+                },
+              });
+            }
           }
         }
         this.loading = false

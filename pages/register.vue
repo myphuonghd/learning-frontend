@@ -77,34 +77,36 @@ export default {
             path: this.$route.query.redirect || "/"
           })
         } catch (error) {
-          const errors = error.response.data.errors;
+          if (error.response !== undefined) {
+            const errors = error.response.data.errors;
 
-          this.form.setFields({
-            'email'   : {
-              value : values.email,
-              errors: errors.email !== undefined ? [
-                {
-                  "message": errors.email,
-                }
-              ] : null
-            },
-            'name'    : {
-              value : values.name,
-              errors: errors.name !== undefined ? [
-                {
-                  "message": errors.name,
-                }
-              ] : null
-            },
-            'password': {
-              value : values.password,
-              errors: errors.password !== undefined ? [
-                {
-                  "message": errors.password,
-                }
-              ] : null
-            },
-          });
+            this.form.setFields({
+              'email'   : {
+                value : values.email,
+                errors: errors.email !== undefined ? [
+                  {
+                    "message": errors.email,
+                  }
+                ] : null
+              },
+              'name'    : {
+                value : values.name,
+                errors: errors.name !== undefined ? [
+                  {
+                    "message": errors.name,
+                  }
+                ] : null
+              },
+              'password': {
+                value : values.password,
+                errors: errors.password !== undefined ? [
+                  {
+                    "message": errors.password,
+                  }
+                ] : null
+              },
+            });
+          }
         }
         this.loading = false
       });

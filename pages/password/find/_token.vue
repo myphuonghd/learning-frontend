@@ -97,28 +97,30 @@ export default {
         this.$message.success('Successfully');
         await this.$router.push('/');
       } else {
-        const errors = error.response.data.errors;
-        this.message = error.response.data.message;
-        this.$message.error(this.message);
-        if (errors !== undefined) {
-          this.form.setFields({
-            'email'   : {
-              value : email,
-              errors: errors.email !== undefined ? [
-                {
-                  "message": errors.email,
-                }
-              ] : null
-            },
-            'password': {
-              value : password,
-              errors: errors.password !== undefined ? [
-                {
-                  "message": errors.password,
-                }
-              ] : null
-            },
-          });
+        if (error.response !== undefined) {
+          const errors = error.response.data.errors;
+          this.message = error.response.data.message;
+          this.$message.error(this.message);
+          if (errors !== undefined) {
+            this.form.setFields({
+              'email'   : {
+                value : email,
+                errors: errors.email !== undefined ? [
+                  {
+                    "message": errors.email,
+                  }
+                ] : null
+              },
+              'password': {
+                value : password,
+                errors: errors.password !== undefined ? [
+                  {
+                    "message": errors.password,
+                  }
+                ] : null
+              },
+            });
+          }
         }
       }
     },

@@ -66,26 +66,27 @@ export default {
             path: this.$route.query.redirect || "/"
           })
         } catch (error) {
-          const errors = error.response.data.errors;
-
-          this.form.setFields({
-            'email'   : {
-              value : values.email,
-              errors: errors.email !== undefined ? [
-                {
-                  "message": errors.email,
-                }
-              ] : null
-            },
-            'password': {
-              value : values.password,
-              errors: errors.password !== undefined ? [
-                {
-                  "message": errors.password,
-                }
-              ] : null
-            },
-          });
+          if (error.response !== undefined){
+            const errors = error.response.data.errors;
+            this.form.setFields({
+              'email'   : {
+                value : values.email,
+                errors: errors.email !== undefined ? [
+                  {
+                    "message": errors.email,
+                  }
+                ] : null
+              },
+              'password': {
+                value : values.password,
+                errors: errors.password !== undefined ? [
+                  {
+                    "message": errors.password,
+                  }
+                ] : null
+              },
+            });
+          }
         }
         this.loading = false
       });

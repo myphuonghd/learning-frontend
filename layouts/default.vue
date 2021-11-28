@@ -1,8 +1,6 @@
 <template>
   <a-layout id="main" class="layout-main">
-    <a-layout-sider class="layout-sider" v-model="collapsed" :trigger="null"
-                    collapsible
-                    :style="{ overflow: 'auto', height: '100vh', position: 'fixed', left: 0 }">
+    <a-layout-sider class="layout-slider" v-model="collapsed" :trigger="null" collapsible>
       <div class="logo"/>
       <a-menu theme="dark" mode="inline" :default-selected-keys="['1']">
         <a-menu-item key="1" @click="gotoDashboard">
@@ -16,7 +14,7 @@
       </a-menu>
     </a-layout-sider>
     <a-layout class="layout-child" :style="{ marginLeft: collapsed ? '80px' : '200px'}">
-      <a-layout-header class="layout-header" style="background: #fff; padding: 0">
+      <a-layout-header class="layout-header">
         <a-icon
           class="trigger"
           :type="collapsed ? 'menu-unfold' : 'menu-fold'"

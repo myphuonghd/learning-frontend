@@ -1,5 +1,5 @@
 <template>
-  <div class="feature feature-auth">
+  <div class="form-auth">
     <h2 class="text-center">Update your password</h2>
     <a-form
       :form="form"
@@ -39,6 +39,7 @@
 <script>
 export default {
   middleware: ['guest'],
+  layout    : 'auth',
   data() {
     return {
       form    : this.$form.createForm(this),
@@ -121,7 +122,7 @@ export default {
         }
       }
     },
-    pushMessageLoading(){
+    pushMessageLoading() {
       const hide = this.$message.loading('Loading...', 0);
       // Dismiss manually and asynchronously
       setTimeout(hide, 500);

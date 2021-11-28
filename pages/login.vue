@@ -1,5 +1,5 @@
 <template>
-  <div class="feature feature-auth">
+  <div class="form-auth">
     <h2 class="text-center">Login SSC Order</h2>
     <a-form
       :form="form"
@@ -42,6 +42,7 @@
 <script>
 export default {
   middleware: ['guest'],
+  layout    : 'auth',
   data() {
     return {
       form   : this.$form.createForm(this),

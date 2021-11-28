@@ -22,68 +22,54 @@ a {
   background-size: 100%;
   position: relative;
   min-height: 100vh;
+  background-image: url("/auth_background.svg");
 }
 
+.layout-main {
 
-.header {
-  background: rgba(29, 58, 72, .819608);
-  min-width: 100%;
-  max-width: 100%;
-  z-index: 100;
-  /*position: fixed;*/
-  top: 0;
-  box-shadow: 0 4px 4px 0 rgb(0 0 0 / 10%);
-  text-align: left;
+  .layout-child {
+    min-height: 100vh;
+  }
 
-  .header-content {
-    padding: 0 24px;
-    height: 100%;
-    max-width: 1200px;
-    position: relative;
-    margin: auto;
+  .layout-sider {
+    .logo {
+      height: 32px;
+      background: rgba(255, 255, 255, 0.2);
+      margin: 16px;
+    }
+  }
 
-    .header-logo {
-      display: inline-block;
-      position: relative;
+  .layout-header {
+    .trigger {
+      font-size: 18px;
       line-height: 64px;
-      margin-right: 12px;
+      padding: 0 24px;
+      cursor: pointer;
+      transition: color 0.3s;
     }
 
-    .header-menu {
-      display: inline-block;
-
-      .menu-content {
-        line-height: 64px;
-        height: 64px;
-        white-space: nowrap;
-        margin: 0;
-        list-style-type: none;
-        padding-left: 12px;
-        cursor: pointer;
-
-        .menu-item {
-          margin-top: 0;
-          display: inline-block;
-          padding: 0 24px 0 0;
-          font-weight: bolder;
-
-          color: #fff;
-
-          a{
-            color: #fff;
-          }
-        }
-
-        .menu-item.active {
-          color: #4a83c9;
-        }
-      }
+    trigger:hover {
+      color: #1890ff;
     }
 
-    .auth-menu {
+    .ico-logout {
       float: right;
     }
   }
+
+  .layout-content {
+    margin: 24px 16px;
+    overflow: initial;
+    min-height: calc(100% - 112px);
+
+    .content {
+      padding: 24px;
+      background: #fff;
+      text-align: center;
+      min-height: 100%;
+    }
+  }
+
 }
 
 .common-logo, .common-logo-spin {
@@ -94,17 +80,21 @@ a {
 
 body {
   .features {
-    min-height: calc(100vh - 64px);
-
     .feature {
-      max-width: 1200px;
-      margin: auto;
-      padding: 24px;
+      margin: 0 auto;
     }
 
     .feature-auth {
       max-width: 600px;
-      margin: 0 auto;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      min-height: 60vh;
+
+      .form-auth {
+        width: 100%;
+        margin: 24px;
+      }
 
       h2 {
         height: 44px;

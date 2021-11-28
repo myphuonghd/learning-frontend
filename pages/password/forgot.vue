@@ -1,5 +1,5 @@
 <template>
-  <div class="feature feature-auth">
+  <div class="form-auth">
     <h2 class="text-center">Ask for password reset link</h2>
     <a-form
       :form="form"
@@ -30,6 +30,7 @@
 <script>
 export default {
   middleware: ['guest'],
+  layout    : 'auth',
   data() {
     return {
       form   : this.$form.createForm(this),
@@ -48,7 +49,7 @@ export default {
           await this.$router.push('/login');
         } catch (error) {
           const errors = error.response.data.errors;
-          if (errors !== undefined){
+          if (errors !== undefined) {
             this.form.setFields({
               'email': {
                 value : values.email,

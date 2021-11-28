@@ -1,0 +1,30 @@
+<template>
+  <div class="app">
+    <TheHeader/>
+    <div class="features">
+      <Nuxt/>
+    </div>
+    <TheFooter/>
+  </div>
+</template>
+
+<script>
+import TheHeader from "../components/TheHeader";
+import TheFooter from "../components/TheFooter";
+
+export default {
+  components: {TheFooter, TheHeader}
+}
+</script>
+
+<style scoped>
+
+.layout-custom .logo {
+  width: 120px;
+  height: 31px;
+  background: rgba(255, 255, 255, 0.2);
+  margin: 16px 24px 16px 0;
+  float: left;
+}
+
+</style>

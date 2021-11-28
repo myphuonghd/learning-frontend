@@ -1,6 +1,6 @@
 <template>
   <div class="feature">
-    <h2>Dashboard</h2>
+    <h2>Order detail</h2>
   </div>
 </template>
 <script>

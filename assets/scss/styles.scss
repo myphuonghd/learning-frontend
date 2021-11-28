@@ -1,0 +1,123 @@
+html, body {
+  background-color: #fff;
+  color: #636b6f;
+  font-family: 'Nunito', sans-serif;
+  font-weight: 200;
+  height: 100vh;
+  margin: 0;
+}
+
+a {
+  text-decoration: none;
+}
+
+.text-center {
+  text-align: center;
+}
+
+.app {
+  width: 100%;
+  background-repeat: no-repeat;
+  background-position: center 110px;
+  background-size: 100%;
+  position: relative;
+  min-height: 100vh;
+}
+
+
+.header {
+  background: rgba(29, 58, 72, .819608);
+  min-width: 100%;
+  max-width: 100%;
+  z-index: 100;
+  /*position: fixed;*/
+  top: 0;
+  box-shadow: 0 4px 4px 0 rgb(0 0 0 / 10%);
+  text-align: left;
+
+  .header-content {
+    padding: 0 24px;
+    height: 100%;
+    max-width: 1200px;
+    position: relative;
+    margin: auto;
+
+    .header-logo {
+      display: inline-block;
+      position: relative;
+      line-height: 64px;
+      margin-right: 12px;
+    }
+
+    .header-menu {
+      display: inline-block;
+
+      .menu-content {
+        line-height: 64px;
+        height: 64px;
+        white-space: nowrap;
+        margin: 0;
+        list-style-type: none;
+        padding-left: 12px;
+        cursor: pointer;
+
+        .menu-item {
+          margin-top: 0;
+          display: inline-block;
+          padding: 0 24px 0 0;
+          font-weight: bolder;
+
+          color: #fff;
+
+          a{
+            color: #fff;
+          }
+        }
+
+        .menu-item.active {
+          color: #4a83c9;
+        }
+      }
+    }
+
+    .auth-menu {
+      float: right;
+    }
+  }
+}
+
+.common-logo, .common-logo-spin {
+  max-height: 48px;
+  vertical-align: middle;
+  display: inline-block;
+}
+
+body {
+  .features {
+    min-height: calc(100vh - 64px);
+
+    .feature {
+      max-width: 1200px;
+      margin: auto;
+      padding: 24px;
+    }
+
+    .feature-auth {
+      max-width: 600px;
+      margin: 0 auto;
+
+      h2 {
+        height: 44px;
+        line-height: 44px;
+        position: relative;
+        top: 2px;
+        color: rgba(0, 0, 0, .85);
+        font-weight: 600;
+        font-size: 33px;
+        font-family: Avenir, helvetica neue, Arial, Helvetica, sans-serif;
+        margin-bottom: 48px;
+      }
+    }
+  }
+}
+

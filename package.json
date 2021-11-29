@@ -3,7 +3,7 @@
   "version": "1.0.0",
   "private": true,
   "scripts": {
-    "dev": "nuxt",
+    "dev": "cross-env NUXT_HOST=0.0.0.0 NUXT_PORT=3000 nuxt",
     "build": "nuxt build",
     "start": "nuxt start",
     "generate": "nuxt generate"
@@ -14,11 +14,11 @@
     "ant-design-vue": "^1.7.6",
     "axios": "^0.18.0",
     "core-js": "^3.15.1",
-    "cross-env": "^5.2.0",
     "nuxt": "^2.15.7",
     "vuex": "^3.6.2"
   },
   "devDependencies": {
+    "cross-env": "^5.2.1",
     "fibers": "^5.0.0",
     "sass": "^1.43.5",
     "sass-loader": "^10.2.0"

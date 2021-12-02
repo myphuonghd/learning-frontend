@@ -9,17 +9,24 @@
       :loading="loading"
       @change="handleTableChange"
     >
+      <template slot="slot-order-id" slot-scope="order_id">
+        <nuxt-link :to="'/orders/' + order_id">
+          <a-tag color="red">
+            {{ order_id }}
+          </a-tag>
+        </nuxt-link>
+      </template>
       <template slot="slot-status" slot-scope="status">
-        <a-select :default-value="status.toString()" style="width: 180px" @change="handleChange">
-          <template v-for="(status_name, status_id) in mst_status" >
+        <a-select :default-value="status.toString()" style="width: 180px" @change="handleChange" >
+          <template v-for="(status_name, status_id) in mst_status">
             <a-select-option :value="status_id">
               {{ status_name }}
             </a-select-option>
           </template>
         </a-select>
       </template>
-      <template slot="slot-action">
-        <a-button type="primary" icon="edit">
+      <template slot="slot-action" slot-scope="order_id">
+        <a-button type="primary" icon="edit" :disabled="status_origin[order_id] === status_change[order_id]">
           Save
         </a-button>
         <a-button type="default" icon="undo">
@@ -75,8 +82,6 @@ export default {
         this.loading        = false;
         this.data           = data.data;
         this.pagination     = pagination;
-
-        console.log(this.mst_status)
       });
     },
   },
@@ -84,8 +89,11 @@ export default {
 
 const columns = [
   {
-    title    : 'Order ID',
-    dataIndex: 'order_id',
+    title      : 'Order ID',
+    dataIndex  : 'order_id',
+    scopedSlots: {
+      customRender: 'slot-order-id',
+    },
   },
   {
     title    : 'Order Time',
@@ -102,20 +110,6 @@ const columns = [
   {
     title    : 'Total Price',
     dataIndex: 'total_price',
-  },
-  {
-    title      : 'Status',
-    dataIndex  : 'status',
-    scopedSlots: {
-      customRender: 'slot-status',
-    },
-  },
-  {
-    title      : 'Action',
-    dataIndex  : '',
-    scopedSlots: {
-      customRender: 'slot-action',
-    },
   },
 ];
 </script>

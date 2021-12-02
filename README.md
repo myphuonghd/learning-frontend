@@ -1,4 +1,5 @@
 # learning-frontend
+Node version: 14.x
 
 ## Build Setup
 

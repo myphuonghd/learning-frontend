@@ -1,13 +1,17 @@
 <template>
   <a-layout id="main" class="layout-main">
     <a-layout-sider class="layout-slider" v-model="collapsed" :trigger="null" collapsible>
-      <div class="logo"/>
+      <div class="logo">RCVN</div>
       <a-menu theme="dark" mode="inline" :default-selected-keys="['1']">
         <a-menu-item key="1" @click="gotoDashboard">
           <a-icon type="home" />
           <span>Dashboard</span>
         </a-menu-item>
-        <a-menu-item key="2" @click="gotoOrders">
+        <a-menu-item key="2" @click="gotoProducts">
+          <a-icon type="appstore" />
+          <span>Products</span>
+        </a-menu-item>
+        <a-menu-item key="3" @click="gotoOrders">
           <a-icon type="shopping" />
           <span>Orders</span>
         </a-menu-item>
@@ -51,6 +55,9 @@ export default {
     },
     async gotoOrders(){
       await this.$router.push('/orders');
+    },
+    async gotoProducts(){
+      await this.$router.push('/products');
     },
   }
 }

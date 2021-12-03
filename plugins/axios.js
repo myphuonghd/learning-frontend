@@ -1,16 +1,23 @@
 import {message} from "ant-design-vue";
-export default function({ $axios, store, redirect }) {
-	$axios.onError(error => {
+
+export default function ({$axios, store, redirect}) {
+  $axios.onError(error => {
     if (error.response === undefined) {
       message.error('Server error.')
     }
-		if (error.response.status === 422) {
-			store.dispatch("validation/setErrors", error.response.data.errors);
-		}
-		return Promise.reject(error);
-	});
+    else if(error.response.status === 422){
+      store.dispatch("validation/setErrors", error.response.data.errors);
+    }
+    else if (error.response.status === 401) {
+      redirect('/login');
+    }
+    else {
+      message.error('There are some problems with your operation.')
+      return Promise.reject(error);
+    }
+  });
 
-	$axios.onRequest(() => {
-		store.dispatch("validation/clearErrors");
-	});
+  $axios.onRequest(() => {
+    store.dispatch("validation/clearErrors");
+  });
 }

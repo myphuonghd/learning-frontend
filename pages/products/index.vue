@@ -1,6 +1,6 @@
 <template>
-  <div class="feature">
-    <h2>Product List</h2>
+  <div class="feature feature-product">
+    <h2>Product Management</h2>
     <a-table
       :columns="columns"
       :row-key="record => record.code"
@@ -9,109 +9,119 @@
       :loading="loading"
       @change="handleTableChange"
     >
-      <template class="text-center" slot="slot-code" slot-scope="code">
+      <template slot="slot-code" slot-scope="code">
         <a-button type="link" :value="code" @click="handleClickRow">{{ code }}</a-button>
       </template>
-      <template class="text-center" slot="slot-taxable" slot-scope="taxable">
+      <template slot="slot-image" slot-scope="image_url, product">
+        <a-button type="link" :value="product.code" @click="handleClickRow">
+          <div class="product-img"><img :alt="product.name" :src="image_url"/></div>
+        </a-button>
+      </template>
+      <template slot="slot-taxable" slot-scope="taxable">
         <TagYesNo :value_bool="taxable"/>
       </template>
-      <template class="text-center" slot="slot-is-ship-free" slot-scope="is_ship_free">
-        <TagYesNo :value_bool="is_ship_free"/>
+      <template slot="slot-is-ship-free" slot-scope="is_ship_free">
+        <TagYesNo :value="is_ship_free"/>
       </template>
-      <template class="text-center" slot="slot-is-ship-now" slot-scope="is_ship_now">
+      <template slot="slot-is-ship-now" slot-scope="is_ship_now">
         <TagYesNo :value_bool="is_ship_now"/>
       </template>
     </a-table>
-    <div class="draw-wrap">
-      <a-drawer
-        title="Product detail"
-        :width="720"
-        :visible="visible"
-        :body-style="{ paddingBottom: '80px' }"
-        @close="onClose"
-      >
-        <template v-if="this.loading_product === true">
-          <div class="loading-spin">
-            <a-spin/>
-          </div>
-        </template>
-        <template v-else>
-          <a-form :form="form" layout="vertical" hide-required-mark>
-            <a-row :gutter="16">
-              <a-col :span="24">
-                <div class="draw-product-img text-center">
-                  <img slot="cover"
-                       alt="example"
-                       src="https://gw.alipayobjects.com/zos/rmsportal/JiqGstEfoWAOHiTxclqi.png"
-                  />
-                </div>
-              </a-col>
-            </a-row>
-            <a-row :gutter="16">
-              <a-col :span="24">
-                <a-form-item label="Name">
-                  <a-input
-                    v-decorator="[
-                  'name',
-                ]"
-                    placeholder="Product name"
-                  />
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-row :gutter="16">
-              <a-col :span="24">
-                <a-form-item label="Product price">
-                  <a-input
-                    v-decorator="[
-                  'price',
-                ]"
-                    style="width: 100%"
-                    placeholder="Please enter price"
-                  />
-                </a-form-item>
-              </a-col>
-            </a-row>
-            <a-row :gutter="16">
-              <a-col :span="24">
-                <a-form-item label="Description">
-                  <a-textarea
-                    v-decorator="[
-                  'description',
-                  {
-                    rules: [{ required: true, message: 'Please enter url description' }],
-                  },
-                ]"
-                    :rows="4"
-                    placeholder="please enter url description"
-                  />
-                </a-form-item>
-              </a-col>
-            </a-row>
-          </a-form>
-        </template>
-        <div
-          :style="{
-          position: 'absolute',
-          right: 0,
-          bottom: 0,
-          width: '100%',
-          borderTop: '1px solid #e9e9e9',
-          padding: '10px 16px',
-          background: '#fff',
-          textAlign: 'right',
-          zIndex: 1,
-        }"
-        >
-          <a-button :style="{ marginRight: '8px' }" @click="onClose">
-            Cancel
-          </a-button>
-          <a-button type="primary" @click="onClose">
-            Submit
-          </a-button>
+    <a-drawer
+      class="draw-wrap"
+      :title="this.product.name"
+      :width="720"
+      :visible="visible"
+      @close="onClose"
+    >
+      <template v-if="this.loading_product === true">
+        <div class="loading-spin">
+          <a-spin/>
         </div>
-      </a-drawer>
-    </div>
+      </template>
+      <template>
+        <a-form :hidden="this.loading_product" :form="form" layout="vertical">
+          <a-row :gutter="16">
+            <a-col :span="24">
+              <div class="draw-product-img text-center">
+                <img slot="cover"
+                     :alt="this.product.name"
+                     :src="this.product.image_url"
+                />
+              </div>
+            </a-col>
+          </a-row>
+          <a-form-item
+            label="Code"
+          >
+            <a-input
+              :value="this.product.code"
+              placeholder="Product code"
+            />
+          </a-form-item>
+          <a-form-item
+            label="Name"
+          >
+            <a-input
+              v-decorator="['name']"
+              placeholder="Product name"
+            />
+          </a-form-item>
+          <a-form-item
+            label="Price"
+          >
+            <a-input-number
+              v-decorator="['price']"
+              :formatter="value => `￥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
+              :parser="value => value.replace(/\￥\s?|(,*)/g, '')"
+              style="width: 100%"
+              placeholder="Product price"
+            />
+          </a-form-item>
+          <a-form-item label="Taxable">
+            <a-radio-group
+              v-decorator="['taxable']">
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
+              </a-radio>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
+              </a-radio>
+            </a-radio-group>
+          </a-form-item>
+          <a-form-item label="Free Ship">
+            <a-radio-group
+              v-decorator="['is_ship_free']">
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
+              </a-radio>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
+              </a-radio>
+            </a-radio-group>
+          </a-form-item>
+          <a-form-item label="Now Ship">
+            <a-radio-group
+              v-decorator="['is_ship_now']">
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
+              </a-radio>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
+              </a-radio>
+            </a-radio-group>
+          </a-form-item>
+        </a-form>
+      </template>
+      <div class="drawer-footer">
+        <a-button class="btn-close" @click="onClose">
+          Cancel
+        </a-button>
+        <a-button :loading="loading_update" :value="this.product.code" type="primary" @click="onUpdate">
+          Update
+        </a-button>
+      </div>
+    </a-drawer>
   </div>
 </template>
 <script>
@@ -131,10 +141,8 @@ export default {
       form           : this.$form.createForm(this),
       visible        : false,
       loading_product: false,
-      current_product: {
-        code: null,
-        data: {}
-      }
+      product        : {},
+      loading_update : false,
     };
   },
   mounted() {
@@ -144,42 +152,135 @@ export default {
     onClose() {
       this.visible = false;
     },
+    async onUpdate(e) {
+      const code          = e.currentTarget.value
+      this.loading_update = true;
+      let is_success      = false;
+      const name          = this.form.getFieldValue('name');
+      const price         = this.form.getFieldValue('price');
+      const taxable       = this.form.getFieldValue('taxable');
+      const is_ship_free  = this.form.getFieldValue('is_ship_free');
+      const is_ship_now   = this.form.getFieldValue('is_ship_now');
+      await this.$axios.$get('products/' + code).then((response) => {
+        const data   = response.data;
+        this.product = {...data}
+        is_success   = true;
+      }).catch(err => {
+        if (err.response !== undefined) {
+          const errors = err.response.data.errors;
+          this.form.setFields({
+            'name'        : {
+              value : name,
+              errors: errors.name !== undefined ? [
+                {
+                  "message": errors.name,
+                }
+              ] : null
+            },
+            'price'       : {
+              value : price,
+              errors: errors.price !== undefined ? [
+                {
+                  "message": errors.price,
+                }
+              ] : null
+            },
+            'taxable'     : {
+              value : taxable,
+              errors: errors.taxable !== undefined ? [
+                {
+                  "message": errors.taxable,
+                }
+              ] : null
+            },
+            'is_ship_free': {
+              value : is_ship_free,
+              errors: errors.is_ship_free !== undefined ? [
+                {
+                  "message": errors.is_ship_free,
+                }
+              ] : null
+            },
+            'is_ship_now' : {
+              value : is_ship_now,
+              errors: errors.is_ship_now !== undefined ? [
+                {
+                  "message": errors.is_ship_now,
+                }
+              ] : null
+            },
+          });
+        }
+      });
+
+      this.loading_update = false;
+      if (is_success)
+        this.$message.success('Update product success.')
+      await this.fetch({
+        results: this.pagination.pageSize,
+        page   : this.pagination.current,
+      });
+    },
     async handleClickRow(e) {
       this.visible         = true;
       this.loading_product = true;
+      this.product         = {};
       const code           = e.currentTarget.value
-      await this.$axios.$get('products/' + code).then((data) => {
-        console.log(data)
+      await this.$axios.$get('products/' + code).then((response) => {
+        const data   = response.data;
+        this.product = {...data}
+
+        this.form.setFields({
+          'name'        : {
+            value : data.name,
+            errors: null
+          },
+          'price'       : {
+            value : data.price,
+            errors: null
+          },
+          'taxable'     : {
+            value : data.taxable,
+            errors: null
+          },
+          'is_ship_free': {
+            value : data.is_ship_free,
+            errors: null
+          },
+          'is_ship_now' : {
+            value : data.is_ship_now,
+            errors: null
+          },
+        });
+      }).finally(() => {
+        this.loading_product = false;
       });
-      this.loading_product = false;
     },
-    handleTableChange(pagination, filters, sorter) {
+    handleTableChange(pagination) {
       const pager     = {...this.pagination};
       pager.current   = pagination.current;
       this.pagination = pager;
       this.fetch({
-        results  : pagination.pageSize,
-        page     : pagination.current,
-        sortField: sorter.field,
-        sortOrder: sorter.order,
-        ...filters,
+        results: pagination.pageSize,
+        page   : pagination.current,
       });
     },
-    fetch(params = {}) {
+    async fetch(params = {}) {
       this.loading = true;
       let query    = {
         results: 25,
         ...params,
       };
-      this.$axios.$get('products', {params: query}).then((data) => {
+      await this.$axios.$get('products', {params: query}).then((data) => {
         const pagination    = {...this.pagination};
         // Read total count from server
         pagination.total    = data.meta.total;
         pagination.pageSize = data.meta.results;
-        this.loading        = false;
         this.data           = data.data;
         this.pagination     = pagination;
-      });
+      }).finally(() => {
+        this.loading = false;
+      })
     },
   },
 }
@@ -188,12 +289,19 @@ const columns = [
   {
     title      : 'Product Code',
     dataIndex  : 'code',
-    width      : '20%',
+    width      : '150px',
     align      : 'center',
     scopedSlots: {
       customRender: 'slot-code',
     },
-    sorter     : true,
+  },
+  {
+    title      : 'Image',
+    dataIndex  : 'image_url',
+    align      : 'center',
+    scopedSlots: {
+      customRender: 'slot-image',
+    },
   },
   {
     title    : 'Product Name',

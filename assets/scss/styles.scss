@@ -15,7 +15,7 @@ a {
   text-align: center;
 }
 
-.loading-spin{
+.loading-spin {
   display: flex;
   align-items: center;
   justify-content: center;
@@ -129,10 +129,45 @@ body {
       }
     }
 
-    .draw-wrap{
-      .draw-product-img{
-        width: 300px;
-        height: 300px;
+    .feature-product{
+      .product-img{
+        width: 60px;
+        img{
+          width: 100%;
+          height: 100%;
+          object-fit: contain;
+        }
+      }
+    }
+  }
+
+  .draw-wrap {
+    .ant-drawer-body{
+      padding-bottom: 80px;
+    }
+
+    .draw-product-img {
+      height: 150px;
+      img{
+        width: 100%;
+        height: 100%;
+        object-fit: contain;
+      }
+    }
+
+    .drawer-footer {
+      position: absolute;
+      right: 0;
+      bottom: 0;
+      width: 100%;
+      border-top: 1px solid #e9e9e9;
+      padding: 10px 16px;
+      background: #fff;
+      text-align: right;
+      z-index: 1;
+
+      .btn-close{
+        margin-right: 8px;
       }
     }
   }

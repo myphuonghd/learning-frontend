@@ -1,17 +1,12 @@
-<template v-if="value_bool === true">
-  <a-tag color="green">
-    YES
-  </a-tag>
-</template>
-<template v-else>
-  <a-tag color="red">
-    NO
+<template>
+  <a-tag :color="value === true ? 'green' : 'red'">
+    {{ value === true ? 'Yes' : 'No' }}
   </a-tag>
 </template>
 <script>
 export default {
   props: {
-    value_bool: Boolean,
+    value: Boolean,
   },
 }
 </script>

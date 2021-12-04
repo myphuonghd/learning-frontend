@@ -3,28 +3,33 @@
     <h2>Product Management</h2>
     <a-table
       :columns="columns"
-      :row-key="record => record.code"
+      :row-key="record => record.itemUrl"
       :data-source="data"
       :pagination="pagination"
       :loading="loading"
       @change="handleTableChange"
     >
-      <template slot="slot-code" slot-scope="code">
-        <a-button type="link" :value="code" @click="handleClickRow">{{ code }}</a-button>
+      <template slot="slot-item-url" slot-scope="itemUrl">
+        <a-button type="link" :value="itemUrl" @click="handleClickRow">{{ itemUrl }}</a-button>
       </template>
-      <template slot="slot-image" slot-scope="image_url, product">
-        <a-button type="link" :value="product.code" @click="handleClickRow">
-          <div class="product-img"><img :alt="product.name" :src="image_url"/></div>
-        </a-button>
+      <template slot="slot-image" slot-scope="image, product">
+        <div class="product-img">
+          <template v-if="isEmpty(image)">
+            <a-empty :description="false" :image="no_image"/>
+          </template>
+          <template v-else>
+            <img :alt="product.name" :src="image"/>
+          </template>
+        </div>
       </template>
-      <template slot="slot-taxable" slot-scope="taxable">
-        <TagYesNo :value_bool="taxable"/>
+      <template slot="slot-taxable" slot-scope="isIncludedTax">
+        <TagYesNo :value_bool="isIncludedTax"/>
       </template>
-      <template slot="slot-is-ship-free" slot-scope="is_ship_free">
-        <TagYesNo :value="is_ship_free"/>
+      <template slot="slot-is-ship-free" slot-scope="isIncludedTax">
+        <TagYesNo :value="isIncludedTax"/>
       </template>
-      <template slot="slot-is-ship-now" slot-scope="is_ship_now">
-        <TagYesNo :value_bool="is_ship_now"/>
+      <template slot="slot-is-hide" slot-scope="isDepot">
+        <TagYesNo :value_bool="isDepot"/>
       </template>
     </a-table>
     <a-drawer
@@ -44,10 +49,15 @@
           <a-row :gutter="16">
             <a-col :span="24">
               <div class="draw-product-img text-center">
-                <img slot="cover"
-                     :alt="this.product.name"
-                     :src="this.product.image_url"
-                />
+                <template v-if="this.isEmpty(this.product.image)">
+                  <a-empty :description="false" :image="this.no_image"/>
+                </template>
+                <template v-else>
+                  <img slot="cover"
+                       :alt="this.product.image.imageAlt"
+                       :src="this.product.image.imageUrl"
+                  />
+                </template>
               </div>
             </a-col>
           </a-row>
@@ -55,7 +65,7 @@
             label="Code"
           >
             <a-input
-              :value="this.product.code"
+              :value="this.product.itemUrl"
               placeholder="Product code"
             />
           </a-form-item>
@@ -63,7 +73,7 @@
             label="Name"
           >
             <a-input
-              v-decorator="['name']"
+              v-decorator="['itemName']"
               placeholder="Product name"
             />
           </a-form-item>
@@ -71,7 +81,7 @@
             label="Price"
           >
             <a-input-number
-              v-decorator="['price']"
+              v-decorator="['itemPrice']"
               :formatter="value => `￥ ${value}`.replace(/\B(?=(\d{3})+(?!\d))/g, ',')"
               :parser="value => value.replace(/\￥\s?|(,*)/g, '')"
               style="width: 100%"
@@ -80,7 +90,7 @@
           </a-form-item>
           <a-form-item label="Taxable">
             <a-radio-group
-              v-decorator="['taxable']">
+              v-decorator="['isIncludedTax']">
               <a-radio :value="true">
                 <TagYesNo :value="true"/>
               </a-radio>
@@ -91,7 +101,7 @@
           </a-form-item>
           <a-form-item label="Free Ship">
             <a-radio-group
-              v-decorator="['is_ship_free']">
+              v-decorator="['isIncludedPostage']">
               <a-radio :value="true">
                 <TagYesNo :value="true"/>
               </a-radio>
@@ -102,7 +112,18 @@
           </a-form-item>
           <a-form-item label="Now Ship">
             <a-radio-group
-              v-decorator="['is_ship_now']">
+              v-decorator="['asurakuDeliveryId']">
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
+              </a-radio>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
+              </a-radio>
+            </a-radio-group>
+          </a-form-item>
+          <a-form-item label="Allow display">
+            <a-radio-group
+              v-decorator="['isDepot']">
               <a-radio :value="true">
                 <TagYesNo :value="true"/>
               </a-radio>
@@ -126,8 +147,16 @@
 </template>
 <script>
 import TagYesNo from '@/components/TagYesNo'
+import {Empty} from 'ant-design-vue';
+
+function isEmpty(value) {
+  return value === '' || value === undefined || value === [] || value === null;
+}
 
 export default {
+  beforeCreate() {
+    this.no_image = Empty.PRESENTED_IMAGE_SIMPLE;
+  },
   middleware: ['auth'],
   components: {
     TagYesNo
@@ -143,6 +172,7 @@ export default {
       loading_product: false,
       product        : {},
       loading_update : false,
+      isEmpty        : isEmpty,
     };
   },
   mounted() {
@@ -153,14 +183,15 @@ export default {
       this.visible = false;
     },
     async onUpdate(e) {
-      const code          = e.currentTarget.value
-      this.loading_update = true;
-      let is_success      = false;
-      const name          = this.form.getFieldValue('name');
-      const price         = this.form.getFieldValue('price');
-      const taxable       = this.form.getFieldValue('taxable');
-      const is_ship_free  = this.form.getFieldValue('is_ship_free');
-      const is_ship_now   = this.form.getFieldValue('is_ship_now');
+      const code              = e.currentTarget.value
+      this.loading_update     = true;
+      let is_success          = false;
+      const itemName          = this.form.getFieldValue('itemName');
+      const itemPrice         = this.form.getFieldValue('itemPrice');
+      const isIncludedTax     = this.form.getFieldValue('isIncludedTax');
+      const isIncludedPostage = this.form.getFieldValue('isIncludedPostage');
+      const asurakuDeliveryId = this.form.getFieldValue('asurakuDeliveryId');
+      const isDepot           = this.form.getFieldValue('isDepot');
       await this.$axios.$get('products/' + code).then((response) => {
         const data   = response.data;
         this.product = {...data}
@@ -169,45 +200,49 @@ export default {
         if (err.response !== undefined) {
           const errors = err.response.data.errors;
           this.form.setFields({
-            'name'        : {
-              value : name,
-              errors: errors.name !== undefined ? [
+            'itemName'         : {
+              value : itemName,
+              errors: errors.itemName !== undefined ? [
                 {
-                  "message": errors.name,
+                  "message": errors.itemName,
                 }
               ] : null
             },
-            'price'       : {
-              value : price,
-              errors: errors.price !== undefined ? [
+            'itemPrice'        : {
+              value : itemPrice,
+              errors: errors.itemPrice !== undefined ? [
                 {
-                  "message": errors.price,
+                  "message": errors.itemPrice,
                 }
               ] : null
             },
-            'taxable'     : {
-              value : taxable,
+            'isIncludedTax'    : {
+              value : isIncludedTax,
               errors: errors.taxable !== undefined ? [
                 {
                   "message": errors.taxable,
                 }
               ] : null
             },
-            'is_ship_free': {
-              value : is_ship_free,
-              errors: errors.is_ship_free !== undefined ? [
+            'isIncludedPostage': {
+              value : isIncludedPostage,
+              errors: errors.isIncludedPostage !== undefined ? [
                 {
-                  "message": errors.is_ship_free,
+                  "message": errors.isIncludedPostage,
                 }
               ] : null
             },
-            'is_ship_now' : {
-              value : is_ship_now,
-              errors: errors.is_ship_now !== undefined ? [
+            'asurakuDeliveryId': {
+              value : asurakuDeliveryId,
+              errors: errors.asurakuDeliveryId !== undefined ? [
                 {
-                  "message": errors.is_ship_now,
+                  "message": errors.asurakuDeliveryId,
                 }
               ] : null
+            },
+            'isDepot'          : {
+              value : isDepot,
+              errors: null
             },
           });
         }
@@ -222,33 +257,41 @@ export default {
       });
     },
     async handleClickRow(e) {
+      const item_url           = e.currentTarget.value
+
+      if (isEmpty(item_url)){
+        return;
+      }
       this.visible         = true;
       this.loading_product = true;
       this.product         = {};
-      const code           = e.currentTarget.value
-      await this.$axios.$get('products/' + code).then((response) => {
+      await this.$axios.$get('products/' + item_url).then((response) => {
         const data   = response.data;
         this.product = {...data}
 
         this.form.setFields({
-          'name'        : {
-            value : data.name,
+          'itemName'         : {
+            value : data.itemName,
             errors: null
           },
-          'price'       : {
-            value : data.price,
+          'itemPrice'        : {
+            value : data.itemPrice,
             errors: null
           },
-          'taxable'     : {
-            value : data.taxable,
+          'isIncludedTax'    : {
+            value : data.isIncludedTax,
             errors: null
           },
-          'is_ship_free': {
-            value : data.is_ship_free,
+          'isIncludedPostage': {
+            value : data.isIncludedPostage,
             errors: null
           },
-          'is_ship_now' : {
-            value : data.is_ship_now,
+          'asurakuDeliveryId': {
+            value : data.asurakuDeliveryId,
+            errors: null
+          },
+          'isDepot'          : {
+            value : data.isDepot,
             errors: null
           },
         });
@@ -276,6 +319,7 @@ export default {
         // Read total count from server
         pagination.total    = data.meta.total;
         pagination.pageSize = data.meta.results;
+        pagination.pageSize = 25;
         this.data           = data.data;
         this.pagination     = pagination;
       }).finally(() => {
@@ -287,35 +331,35 @@ export default {
 
 const columns = [
   {
-    title      : 'Product Code',
-    dataIndex  : 'code',
+    title      : 'Code',
+    dataIndex  : 'itemUrl',
     width      : '150px',
     align      : 'center',
     scopedSlots: {
-      customRender: 'slot-code',
+      customRender: 'slot-item-url',
     },
   },
   {
     title      : 'Image',
-    dataIndex  : 'image_url',
+    dataIndex  : 'image',
     align      : 'center',
     scopedSlots: {
       customRender: 'slot-image',
     },
   },
   {
-    title    : 'Product Name',
-    dataIndex: 'name',
+    title    : 'Name',
+    dataIndex: 'itemName',
   },
   {
-    title    : 'Product Price',
-    dataIndex: 'price',
+    title    : 'Price',
+    dataIndex: 'itemPrice',
     align    : 'center',
     width    : '120px',
   },
   {
     title      : 'Taxable',
-    dataIndex  : 'taxable',
+    dataIndex  : 'isIncludedTax',
     width      : '100px',
     align      : 'center',
     scopedSlots: {
@@ -324,7 +368,7 @@ const columns = [
   },
   {
     title      : 'Free Ship',
-    dataIndex  : 'is_ship_free',
+    dataIndex  : 'isIncludedPostage',
     width      : '100px',
     align      : 'center',
     scopedSlots: {
@@ -332,12 +376,12 @@ const columns = [
     },
   },
   {
-    title      : 'Now Ship',
-    dataIndex  : 'is_ship_now',
+    title      : 'Hide',
+    dataIndex  : 'isDepot',
     width      : '100px',
     align      : 'center',
     scopedSlots: {
-      customRender: 'slot-is-ship-now',
+      customRender: 'slot-is-hide',
     },
   },
 ];

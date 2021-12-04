@@ -22,14 +22,20 @@
           </template>
         </div>
       </template>
-      <template slot="slot-taxable" slot-scope="isIncludedTax">
-        <TagYesNo :value_bool="isIncludedTax"/>
+      <template slot="slot-price" slot-scope="itemPrice">
+        {{ '￥' + formatNumber(itemPrice) }}
       </template>
-      <template slot="slot-is-ship-free" slot-scope="isIncludedTax">
+      <template slot="slot-taxable" slot-scope="isIncludedTax">
         <TagYesNo :value="isIncludedTax"/>
       </template>
-      <template slot="slot-is-hide" slot-scope="isDepot">
-        <TagYesNo :value_bool="isDepot"/>
+      <template slot="slot-ship-free" slot-scope="isIncludedPostage">
+        <TagYesNo :value="isIncludedPostage"/>
+      </template>
+      <template slot="slot-hide" slot-scope="isDepot">
+        <TagYesNo :value="isDepot"/>
+      </template>
+      <template slot="slot-reg-date" slot-scope="registDate">
+        {{ formatDate(registDate) }}
       </template>
     </a-table>
     <a-drawer
@@ -121,7 +127,7 @@
               </a-radio>
             </a-radio-group>
           </a-form-item>
-          <a-form-item label="Allow display">
+          <a-form-item label="Hide">
             <a-radio-group
               v-decorator="['isDepot']">
               <a-radio :value="true">
@@ -153,6 +159,32 @@ function isEmpty(value) {
   return value === '' || value === undefined || value === [] || value === null;
 }
 
+function formatNumber(value) {
+  value += '';
+  const list   = value.split('.');
+  const prefix = list[0].charAt(0) === '-' ? '-' : '';
+  let num      = prefix ? list[0].slice(1) : list[0];
+  let result   = '';
+  while (num.length > 3) {
+    result = `,${num.slice(-3)}${result}`;
+    num    = num.slice(0, num.length - 3);
+  }
+  if (num) {
+    result = num + result;
+  }
+  return `${prefix}${result}${list[1] ? `.${list[1]}` : ''}`;
+}
+
+function formatDate(value) {
+  let date = new Date(value)
+  return date.getFullYear() + "/" + ("00" + (date.getMonth() + 1)).slice(-2) + "/" +
+    ("00" + date.getDate()).slice(-2) +
+    " " +
+    ("00" + date.getHours()).slice(-2) + ":" +
+    ("00" + date.getMinutes()).slice(-2) + ":" +
+    ("00" + date.getSeconds()).slice(-2);
+}
+
 export default {
   beforeCreate() {
     this.no_image = Empty.PRESENTED_IMAGE_SIMPLE;
@@ -172,15 +204,23 @@ export default {
       loading_product: false,
       product        : {},
       loading_update : false,
-      isEmpty        : isEmpty,
+      isEmpty,
+      formatNumber,
+      formatDate,
     };
   },
   mounted() {
-    this.fetch();
+    this.fetch({
+      sort_order: 'asc'
+    });
   },
   methods: {
     onClose() {
-      this.visible = false;
+      if (this.loading_update !== true) {
+        this.visible = false;
+      } else {
+        this.$message.warn('Please waiting upload product.')
+      }
     },
     async onUpdate(e) {
       const code              = e.currentTarget.value
@@ -218,9 +258,9 @@ export default {
             },
             'isIncludedTax'    : {
               value : isIncludedTax,
-              errors: errors.taxable !== undefined ? [
+              errors: errors.isIncludedTax !== undefined ? [
                 {
-                  "message": errors.taxable,
+                  "message": errors.isIncludedTax,
                 }
               ] : null
             },
@@ -257,9 +297,9 @@ export default {
       });
     },
     async handleClickRow(e) {
-      const item_url           = e.currentTarget.value
+      const item_url = e.currentTarget.value
 
-      if (isEmpty(item_url)){
+      if (isEmpty(item_url)) {
         return;
       }
       this.visible         = true;
@@ -299,13 +339,24 @@ export default {
         this.loading_product = false;
       });
     },
-    handleTableChange(pagination) {
+    handleTableChange(pagination, filters, sorter) {
       const pager     = {...this.pagination};
       pager.current   = pagination.current;
       this.pagination = pager;
+
+      let order;
+      if (sorter.order === "ascend") {
+        order = 'asc'
+      } else if (sorter.order === "descend") {
+        order = 'desc'
+      } else {
+        order = null
+      }
+
       this.fetch({
-        results: pagination.pageSize,
-        page   : pagination.current,
+        results   : pagination.pageSize,
+        page      : pagination.current,
+        sort_order: order,
       });
     },
     async fetch(params = {}) {
@@ -319,7 +370,6 @@ export default {
         // Read total count from server
         pagination.total    = data.meta.total;
         pagination.pageSize = data.meta.results;
-        pagination.pageSize = 25;
         this.data           = data.data;
         this.pagination     = pagination;
       }).finally(() => {
@@ -333,7 +383,7 @@ const columns = [
   {
     title      : 'Code',
     dataIndex  : 'itemUrl',
-    width      : '150px',
+    width      : '100px',
     align      : 'center',
     scopedSlots: {
       customRender: 'slot-item-url',
@@ -343,6 +393,7 @@ const columns = [
     title      : 'Image',
     dataIndex  : 'image',
     align      : 'center',
+    width      : '100px',
     scopedSlots: {
       customRender: 'slot-image',
     },
@@ -352,10 +403,13 @@ const columns = [
     dataIndex: 'itemName',
   },
   {
-    title    : 'Price',
-    dataIndex: 'itemPrice',
-    align    : 'center',
-    width    : '120px',
+    title      : 'Price',
+    dataIndex  : 'itemPrice',
+    align      : 'center',
+    width      : '100px',
+    scopedSlots: {
+      customRender: 'slot-price',
+    },
   },
   {
     title      : 'Taxable',
@@ -372,7 +426,7 @@ const columns = [
     width      : '100px',
     align      : 'center',
     scopedSlots: {
-      customRender: 'slot-is-ship-free',
+      customRender: 'slot-ship-free',
     },
   },
   {
@@ -381,7 +435,17 @@ const columns = [
     width      : '100px',
     align      : 'center',
     scopedSlots: {
-      customRender: 'slot-is-hide',
+      customRender: 'slot-hide',
+    },
+  },
+  {
+    title      : 'Reg Date',
+    dataIndex  : 'registDate',
+    width      : '120px',
+    align      : 'center',
+    sorter     : true,
+    scopedSlots: {
+      customRender: 'slot-reg-date',
     },
   },
 ];

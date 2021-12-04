@@ -66,7 +66,7 @@ export default {
             path: this.$route.query.redirect || "/"
           })
         } catch (error) {
-          if (error.response !== undefined){
+          if (err.response !== undefined && err.response.status === 422){
             const errors = error.response.data.errors;
             this.form.setFields({
               'email'   : {

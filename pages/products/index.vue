@@ -144,7 +144,7 @@
         <a-button class="btn-close" @click="onClose">
           Cancel
         </a-button>
-        <a-button :loading="loading_update" :value="this.product.code" type="primary" @click="onUpdate">
+        <a-button :loading="loading_update" :value="this.product.itemUrl" type="primary" @click="onUpdate">
           Update
         </a-button>
       </div>
@@ -210,9 +210,7 @@ export default {
     };
   },
   mounted() {
-    this.fetch({
-      sort_order: 'asc'
-    });
+    this.fetch({});
   },
   methods: {
     onClose() {
@@ -232,12 +230,18 @@ export default {
       const isIncludedPostage = this.form.getFieldValue('isIncludedPostage');
       const asurakuDeliveryId = this.form.getFieldValue('asurakuDeliveryId');
       const isDepot           = this.form.getFieldValue('isDepot');
-      await this.$axios.$get('products/' + code).then((response) => {
-        const data   = response.data;
-        this.product = {...data}
-        is_success   = true;
+
+      await this.$axios.$post('products/update/' + code, {
+        itemName         : itemName,
+        itemPrice        : itemPrice,
+        isIncludedTax    : isIncludedTax,
+        isIncludedPostage: isIncludedPostage,
+        asurakuDeliveryId: asurakuDeliveryId,
+        isDepot          : isDepot,
+      }).then(() => {
+        is_success = true;
       }).catch(err => {
-        if (err.response !== undefined) {
+        if (err.response !== undefined && err.response.status === 422) {
           const errors = err.response.data.errors;
           this.form.setFields({
             'itemName'         : {
@@ -354,9 +358,9 @@ export default {
       }
 
       this.fetch({
-        results   : pagination.pageSize,
-        page      : pagination.current,
-        sort_order: order,
+        results: pagination.pageSize,
+        page   : pagination.current,
+        sort  : order,
       });
     },
     async fetch(params = {}) {

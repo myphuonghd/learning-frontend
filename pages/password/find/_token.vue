@@ -97,7 +97,7 @@ export default {
         this.$message.success('Successfully');
         await this.$router.push('/');
       } else {
-        if (error.response !== undefined) {
+        if (error.response !== undefined && error.response.status === 422) {
           const errors = error.response.data.errors;
           this.message = error.response.data.message;
           this.$message.error(this.message);

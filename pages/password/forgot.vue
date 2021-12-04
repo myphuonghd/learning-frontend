@@ -48,7 +48,7 @@ export default {
           this.$message.success(res.data.message);
           await this.$router.push('/login');
         } catch (error) {
-          if (error.response !== undefined){
+          if (error.response !== undefined && error.response.status === 422){
             const errors = error.response.data.errors;
             if (errors !== undefined) {
               this.form.setFields({

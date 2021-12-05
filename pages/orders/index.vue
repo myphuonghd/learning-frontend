@@ -241,7 +241,7 @@ export default {
       this.product.itemNumber = itemNumber;
       this.product.itemName   = itemName;
 
-      await this.$axios.$get('products/' + '154578').then((response) => {
+      await this.$axios.$get('products/' + itemNumber).then((response) => {
         const data        = response.data;
         this.product.data = {...data}
       }).finally(() => {

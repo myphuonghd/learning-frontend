@@ -9,7 +9,7 @@ export default function ({$axios, store, redirect}) {
       store.dispatch("validation/setErrors", error.response.data.errors);
     }
     else if (error.response.status === 401) {
-      redirect('/login');
+      store.$auth.logout();
     }
     else {
       message.error('There are some problems with your operation.')

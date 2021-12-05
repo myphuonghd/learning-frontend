@@ -1,7 +1,9 @@
 <template>
   <a-layout id="main" class="layout-main">
     <a-layout-sider class="layout-slider" v-model="collapsed" :trigger="null" collapsible>
-      <div class="logo">RCVN</div>
+      <div class="logo">
+        <img alt="learning-log" :src="collapsed ? '/logo_min.jpeg' : '/logo.png'"/>
+      </div>
       <a-menu theme="dark" mode="inline" :default-selected-keys="[this.key]">
         <a-menu-item key="1" @click="gotoDashboard">
           <a-icon type="home"/>

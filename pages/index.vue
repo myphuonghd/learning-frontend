@@ -1,6 +1,10 @@
 <template>
   <div class="feature">
-    <h2>Dashboard</h2>
+    <a-result title="Great, we have done learning the NuxtJS!">
+      <template #icon>
+        <a-icon type="smile" theme="twoTone" />
+      </template>
+    </a-result>
   </div>
 </template>
 <script>

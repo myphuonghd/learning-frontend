@@ -9,8 +9,10 @@
       :loading="loading"
       @change="handleTableChange"
     >
-      <template slot="slot-item-url" slot-scope="itemUrl">
-        <a-button type="link" :value="itemUrl" @click="handleClickRow">{{ itemUrl }}</a-button>
+      <template slot="slot-item-url" slot-scope="itemUrl, product">
+        <a-button type="link" :value="itemUrl" @click="handleClickRow" :data-name="product.itemName">
+          {{ itemUrl }}
+        </a-button>
       </template>
       <template slot="slot-image" slot-scope="image, product">
         <div class="product-img">
@@ -18,12 +20,12 @@
             <a-empty :description="false" :image="no_image"/>
           </template>
           <template v-else>
-            <img :alt="product.name" :src="image"/>
+            <img :alt="product.itemName" :src="image"/>
           </template>
         </div>
       </template>
       <template slot="slot-price" slot-scope="itemPrice">
-        {{ '￥' + formatNumber(itemPrice) }}
+        {{ formatNumber(itemPrice) }}
       </template>
       <template slot="slot-taxable" slot-scope="isIncludedTax">
         <TagYesNo :value="isIncludedTax"/>
@@ -40,38 +42,39 @@
     </a-table>
     <a-drawer
       class="draw-wrap"
-      :title="this.product.name"
+      :title="product.itemName"
       :width="720"
-      :visible="visible"
+      :visible="product.visible"
       @close="onClose"
     >
-      <template v-if="this.loading_product === true">
+      <template v-if="product.loading === true">
         <div class="loading-spin">
           <a-spin/>
         </div>
       </template>
       <template>
-        <a-form :hidden="this.loading_product" :form="form" layout="vertical">
+        <a-form :hidden="product.loading === true || product.data === {}" :form="form" layout="vertical">
           <a-row :gutter="16">
             <a-col :span="24">
               <div class="draw-product-img text-center">
-                <template v-if="this.isEmpty(this.product.image)">
+                <template v-if="this.isEmpty(product.data.image)">
                   <a-empty :description="false" :image="this.no_image"/>
                 </template>
                 <template v-else>
                   <img slot="cover"
-                       :alt="this.product.image.imageAlt"
-                       :src="this.product.image.imageUrl"
+                       :alt="product.data.image.imageAlt"
+                       :src="product.data.image.imageUrl"
                   />
                 </template>
               </div>
             </a-col>
           </a-row>
+          <a-divider/>
           <a-form-item
             label="Code"
           >
             <a-input
-              :value="this.product.itemUrl"
+              :value="product.data.itemUrl"
               placeholder="Product code"
             />
           </a-form-item>
@@ -141,11 +144,11 @@
         </a-form>
       </template>
       <div class="drawer-footer">
+        <a-button :loading="loading_update" :value="product.itemUrl" type="primary" @click="onUpdate">
+          Update
+        </a-button>
         <a-button class="btn-close" @click="onClose">
           Cancel
-        </a-button>
-        <a-button :loading="loading_update" :value="this.product.itemUrl" type="primary" @click="onUpdate">
-          Update
         </a-button>
       </div>
     </a-drawer>
@@ -154,36 +157,6 @@
 <script>
 import TagYesNo from '@/components/TagYesNo'
 import {Empty} from 'ant-design-vue';
-
-function isEmpty(value) {
-  return value === '' || value === undefined || value === [] || value === null;
-}
-
-function formatNumber(value) {
-  value += '';
-  const list   = value.split('.');
-  const prefix = list[0].charAt(0) === '-' ? '-' : '';
-  let num      = prefix ? list[0].slice(1) : list[0];
-  let result   = '';
-  while (num.length > 3) {
-    result = `,${num.slice(-3)}${result}`;
-    num    = num.slice(0, num.length - 3);
-  }
-  if (num) {
-    result = num + result;
-  }
-  return `${prefix}${result}${list[1] ? `.${list[1]}` : ''}`;
-}
-
-function formatDate(value) {
-  let date = new Date(value)
-  return date.getFullYear() + "/" + ("00" + (date.getMonth() + 1)).slice(-2) + "/" +
-    ("00" + date.getDate()).slice(-2) +
-    " " +
-    ("00" + date.getHours()).slice(-2) + ":" +
-    ("00" + date.getMinutes()).slice(-2) + ":" +
-    ("00" + date.getSeconds()).slice(-2);
-}
 
 export default {
   beforeCreate() {
@@ -195,15 +168,19 @@ export default {
   },
   data() {
     return {
-      data           : [],
-      pagination     : {},
-      loading        : true,
+      data          : [],
+      pagination    : {},
+      loading       : true,
       columns,
-      form           : this.$form.createForm(this),
-      visible        : false,
-      loading_product: false,
-      product        : {},
-      loading_update : false,
+      form          : this.$form.createForm(this),
+      product       : {
+        data    : {},
+        loading : false,
+        itemUrl : null,
+        itemName: '',
+        visible : false,
+      },
+      loading_update: false,
       isEmpty,
       formatNumber,
       formatDate,
@@ -215,7 +192,7 @@ export default {
   methods: {
     onClose() {
       if (this.loading_update !== true) {
-        this.visible = false;
+        this.product.visible = false;
       } else {
         this.$message.warn('Please waiting upload product.')
       }
@@ -293,12 +270,13 @@ export default {
       });
 
       this.loading_update = false;
-      if (is_success)
+      if (is_success) {
         this.$message.success('Update product success.')
-      await this.fetch({
-        results: this.pagination.pageSize,
-        page   : this.pagination.current,
-      });
+        await this.fetch({
+          results: this.pagination.pageSize,
+          page   : this.pagination.current,
+        });
+      }
     },
     async handleClickRow(e) {
       const item_url = e.currentTarget.value
@@ -306,12 +284,17 @@ export default {
       if (isEmpty(item_url)) {
         return;
       }
-      this.visible         = true;
-      this.loading_product = true;
-      this.product         = {};
+      const itemName   = e.currentTarget.getAttribute('data-name');
+
+      this.product.visible  = true;
+      this.product.loading  = true;
+      this.product.data     = {};
+      this.product.itemUrl  = item_url;
+      this.product.itemName = itemName;
+
       await this.$axios.$get('products/' + item_url).then((response) => {
-        const data   = response.data;
-        this.product = {...data}
+        const data        = response.data;
+        this.product.data = {...data}
 
         this.form.setFields({
           'itemName'         : {
@@ -340,7 +323,7 @@ export default {
           },
         });
       }).finally(() => {
-        this.loading_product = false;
+        this.product.loading = false;
       });
     },
     handleTableChange(pagination, filters, sorter) {
@@ -360,7 +343,7 @@ export default {
       this.fetch({
         results: pagination.pageSize,
         page   : pagination.current,
-        sort  : order,
+        sort   : order,
       });
     },
     async fetch(params = {}) {
@@ -415,24 +398,7 @@ const columns = [
       customRender: 'slot-price',
     },
   },
-  {
-    title      : 'Taxable',
-    dataIndex  : 'isIncludedTax',
-    width      : '100px',
-    align      : 'center',
-    scopedSlots: {
-      customRender: 'slot-taxable',
-    },
-  },
-  {
-    title      : 'Free Ship',
-    dataIndex  : 'isIncludedPostage',
-    width      : '100px',
-    align      : 'center',
-    scopedSlots: {
-      customRender: 'slot-ship-free',
-    },
-  },
+
   {
     title      : 'Hide',
     dataIndex  : 'isDepot',
@@ -445,7 +411,7 @@ const columns = [
   {
     title      : 'Reg Date',
     dataIndex  : 'registDate',
-    width      : '120px',
+    width      : '200px',
     align      : 'center',
     sorter     : true,
     scopedSlots: {
@@ -453,6 +419,36 @@ const columns = [
     },
   },
 ];
+
+function isEmpty(value) {
+  return value === '' || value === undefined || value === [] || value === null;
+}
+
+function formatNumber(value) {
+  value += '';
+  const list   = value.split('.');
+  const prefix = list[0].charAt(0) === '-' ? '-' : '';
+  let num      = prefix ? list[0].slice(1) : list[0];
+  let result   = '';
+  while (num.length > 3) {
+    result = `,${num.slice(-3)}${result}`;
+    num    = num.slice(0, num.length - 3);
+  }
+  if (num) {
+    result = num + result;
+  }
+  return '￥' + `${prefix}${result}${list[1] ? `.${list[1]}` : ''}`;
+}
+
+function formatDate(value) {
+  let date = new Date(value)
+  return date.getFullYear() + "/" + ("00" + (date.getMonth() + 1)).slice(-2) + "/" +
+    ("00" + date.getDate()).slice(-2) +
+    " " +
+    ("00" + date.getHours()).slice(-2) + ":" +
+    ("00" + date.getMinutes()).slice(-2) + ":" +
+    ("00" + date.getSeconds()).slice(-2);
+}
 </script>
 
 

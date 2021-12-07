@@ -24,6 +24,9 @@
           </template>
         </div>
       </template>
+      <template slot="slot-review" slot-scope="index, product">
+        <a target="_blank" :href="renderRakutenUrl(product.itemUrl)"><a-icon class="icon-review" type="eye"/></a>
+      </template>
       <template slot="slot-price" slot-scope="itemPrice">
         {{ formatNumber(itemPrice) }}
       </template>
@@ -62,7 +65,6 @@
                 </template>
                 <template v-else>
                   <img slot="cover"
-                       :alt="product.data.image.imageAlt"
                        :src="product.data.image.imageUrl"
                   />
                 </template>
@@ -141,6 +143,12 @@
               </a-radio>
             </a-radio-group>
           </a-form-item>
+          <a-divider/>
+          <a-descriptions :column="24">
+            <a-descriptions-item label="Review" :span="24">
+              <a target="_blank" :href="renderRakutenUrl(product.data.itemNumber)">{{ renderRakutenUrl(product.data.itemNumber) }}</a>
+            </a-descriptions-item>
+          </a-descriptions>
         </a-form>
       </template>
       <div class="drawer-footer">
@@ -184,6 +192,7 @@ export default {
       isEmpty,
       formatNumber,
       formatDate,
+      renderRakutenUrl,
     };
   },
   mounted() {
@@ -284,7 +293,7 @@ export default {
       if (isEmpty(item_url)) {
         return;
       }
-      const itemName   = e.currentTarget.getAttribute('data-name');
+      const itemName = e.currentTarget.getAttribute('data-name');
 
       this.product.visible  = true;
       this.product.loading  = true;
@@ -380,7 +389,7 @@ const columns = [
     title      : 'Image',
     dataIndex  : 'image',
     align      : 'center',
-    width      : '100px',
+    width      : '80px',
     scopedSlots: {
       customRender: 'slot-image',
     },
@@ -388,6 +397,14 @@ const columns = [
   {
     title    : 'Name',
     dataIndex: 'itemName',
+  },
+  {
+    title      : 'Review',
+    align      : 'center',
+    width      : '100px',
+    scopedSlots: {
+      customRender: 'slot-review',
+    },
   },
   {
     title      : 'Price',
@@ -448,6 +465,10 @@ function formatDate(value) {
     ("00" + date.getHours()).slice(-2) + ":" +
     ("00" + date.getMinutes()).slice(-2) + ":" +
     ("00" + date.getSeconds()).slice(-2);
+}
+
+function renderRakutenUrl(item_url){
+    return "https://item.rakuten.co.jp/_shop_53618/" + item_url;
 }
 </script>
 

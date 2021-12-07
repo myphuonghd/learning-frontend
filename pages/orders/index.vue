@@ -1,5 +1,5 @@
 <template>
-  <div class="feature">
+  <div class="feature feature-order">
     <h2>Order Management</h2>
     <a-table
       :columns="columns"
@@ -42,7 +42,7 @@
           </div>
         </template>
         <template v-if="order.loading === false && order.data !== {}">
-          <a-descriptions title="User Information" :column="24">
+          <a-descriptions class="block-user" title="User Information" :column="24">
             <a-descriptions-item label="Name" :span="12">
               {{ order.user.firstName + order.user.familyName }}
             </a-descriptions-item>
@@ -66,7 +66,7 @@
             </a-descriptions-item>
           </a-descriptions>
           <a-divider/>
-          <a-descriptions title="Order Detail" :column="24">
+          <a-descriptions class="block-order" title="Order Detail" :column="24">
             <a-descriptions-item label="Order Number" :span="12">
               {{ order.orderNumber }}
             </a-descriptions-item>
@@ -88,11 +88,11 @@
             </a-descriptions-item>
           </a-descriptions>
           <a-divider/>
-          <a-descriptions title="Products" :column="24">
-            <a-descriptions-item :span="3">
+          <a-descriptions class="block-product" title="Products" :column="24">
+            <a-descriptions-item :span="4">
               Code
             </a-descriptions-item>
-            <a-descriptions-item :span="15">
+            <a-descriptions-item :span="14">
               Name
             </a-descriptions-item>
             <a-descriptions-item :span="4">
@@ -102,13 +102,13 @@
               Units
             </a-descriptions-item>
             <template v-for="product in order.products">
-              <a-descriptions-item :span="3">
+              <a-descriptions-item :span="4">
                 <a-button type="link" :value="product.itemNumber" :data-name="product.itemName"
                           @click="handleDetailProduct">
                   {{ product.itemNumber }}
                 </a-button>
               </a-descriptions-item>
-              <a-descriptions-item :span="15">
+              <a-descriptions-item :span="14">
                 {{ product.itemName }}
               </a-descriptions-item>
               <a-descriptions-item :span="4">
@@ -142,7 +142,6 @@
                       </template>
                       <template v-else>
                         <img slot="cover"
-                             :alt="product.data.image.imageAlt"
                              :src="product.data.image.imageUrl"
                         />
                       </template>
@@ -168,6 +167,12 @@
                   </a-descriptions-item>
                   <a-descriptions-item label="Hide" :span="8">
                     <TagYesNo :value="product.data.isDepot"/>
+                  </a-descriptions-item>
+                </a-descriptions>
+                <a-divider/>
+                <a-descriptions :column="24">
+                  <a-descriptions-item label="Review" :span="24">
+                    <a target="_blank" :href="renderRakutenUrl(product.data.itemNumber)">{{ renderRakutenUrl(product.data.itemNumber) }}</a>
                   </a-descriptions-item>
                 </a-descriptions>
               </template>
@@ -198,6 +203,7 @@ export default {
       formatDate,
       getColor,
       formatBirthday,
+      renderRakutenUrl,
 
       order: {
         data       : {},
@@ -436,5 +442,9 @@ function formatBirthday(year, month, date) {
   date  = date >= 10 ? date.toString() : '0' + date.toString();
 
   return year + '-' + month + '-' + date;
+}
+
+function renderRakutenUrl(item_url){
+  return "https://item.rakuten.co.jp/_shop_53618/" + item_url;
 }
 </script>

@@ -151,6 +151,10 @@ body {
           margin: 0;
         }
       }
+
+      .icon-review{
+        font-size: 18px;
+      }
     }
   }
 
@@ -196,6 +200,19 @@ body {
 
       .btn-close {
         margin-left: 8px;
+      }
+    }
+
+    .block-product{
+      .ant-descriptions-view{
+        tbody{
+          tr{
+            &:first-child{
+              color: rgba(0, 0, 0, 0.85);
+            }
+            text-align: center;
+          }
+        }
       }
     }
   }

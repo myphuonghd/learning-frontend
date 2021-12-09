@@ -1,6 +1,59 @@
 <template>
   <div class="feature feature-product">
     <h2>Product Management</h2>
+    <div class="filter">
+      <a-row :gutter="24">
+        <a-col :span="16" :offset="4">
+          <div class="search-keyword">
+            <div class="search-bar">
+              <a-input-search
+                placeholder="input search text"
+                :loading="loading"
+                @search="onSearch"
+              />
+            </div>
+          </div>
+          <div class="search-condition">
+            <a-tree
+              show-icon
+              :selectable="false"
+              :checkable="true"
+            >
+              <a-icon slot="switcherIcon" type="filter"/>
+              <a-tree-node
+                key="0"
+                title="Search condition"
+                :checkable="false"
+                class="chk-search"
+              >
+                <a-tree-node class="chk-item" key="0-0-0" title="Taxable" :checkable="true" isLeaf/>
+                <a-tree-node class="chk-item" key="0-0-1" title="Free Ship" :checkable="true" isLeaf/>
+                <a-tree-node class="chk-item" key="0-0-2" title="Now Ship" :checkable="true" isLeaf/>
+                <a-tree-node class="chk-item" key="0-0-3" title="Hide" :checkable="true" isLeaf/>
+              </a-tree-node>
+            </a-tree>
+          </div>
+        </a-col>
+      </a-row>
+      <a-row>
+        <a-col :span="12">
+          <a-row>
+
+          </a-row>
+          <a-divider/>
+          <div class="search-type">
+
+          </div>
+          <a-checkbox :indeterminate="indeterminate" :checked="checkAll" @change="onCheckAllChange">
+            Check all
+          </a-checkbox>
+          <div class="search-condition">
+            <a-checkbox-group v-model="checkedList" :options="plainOptions" @change="onChange"/>
+          </div>
+        </a-col>
+      </a-row>
+      <a-divider/>
+    </div>
     <a-table
       :columns="columns"
       :row-key="record => record.itemUrl"
@@ -25,7 +78,9 @@
         </div>
       </template>
       <template slot="slot-review" slot-scope="index, product">
-        <a target="_blank" :href="renderRakutenUrl(product.itemUrl)"><a-icon class="icon-review" type="eye"/></a>
+        <a target="_blank" :href="renderRakutenUrl(product.itemUrl)">
+          <a-icon class="icon-review" type="eye"/>
+        </a>
       </template>
       <template slot="slot-price" slot-scope="itemPrice">
         {{ formatNumber(itemPrice) }}
@@ -146,7 +201,8 @@
           <a-divider/>
           <a-descriptions :column="24">
             <a-descriptions-item label="Review" :span="24">
-              <a target="_blank" :href="renderRakutenUrl(product.data.itemNumber)">{{ renderRakutenUrl(product.data.itemNumber) }}</a>
+              <a target="_blank"
+                 :href="renderRakutenUrl(product.data.itemNumber)">{{ renderRakutenUrl(product.data.itemNumber) }}</a>
             </a-descriptions-item>
           </a-descriptions>
         </a-form>
@@ -165,6 +221,9 @@
 <script>
 import TagYesNo from '@/components/TagYesNo'
 import {Empty} from 'ant-design-vue';
+
+const plainOptions       = ['Taxable', 'Free Ship', 'Now Ship', 'Hide'];
+const defaultCheckedList = [];
 
 export default {
   beforeCreate() {
@@ -193,18 +252,43 @@ export default {
       formatNumber,
       formatDate,
       renderRakutenUrl,
+
+      checkedList  : defaultCheckedList,
+      indeterminate: true,
+      checkAll     : false,
+      plainOptions,
     };
   },
   mounted() {
     this.fetch({});
   },
   methods: {
+    onSelect(selectedKeys, info) {
+      console.log('selected', selectedKeys, info);
+    },
+    onCheck(checkedKeys, info) {
+      console.log('onCheck', checkedKeys, info);
+    },
+    onChange(checkedList) {
+      this.indeterminate = !!checkedList.length && checkedList.length < plainOptions.length;
+      this.checkAll      = checkedList.length === plainOptions.length;
+    },
+    onCheckAllChange(e) {
+      Object.assign(this, {
+        checkedList  : e.target.checked ? plainOptions : [],
+        indeterminate: false,
+        checkAll     : e.target.checked,
+      });
+    },
     onClose() {
       if (this.loading_update !== true) {
         this.product.visible = false;
       } else {
         this.$message.warn('Please waiting upload product.')
       }
+    },
+    async onSearch(value) {
+
     },
     async onUpdate(e) {
       const code              = e.currentTarget.value
@@ -467,8 +551,8 @@ function formatDate(value) {
     ("00" + date.getSeconds()).slice(-2);
 }
 
-function renderRakutenUrl(item_url){
-    return "https://item.rakuten.co.jp/_shop_53618/" + item_url;
+function renderRakutenUrl(item_url) {
+  return "https://item.rakuten.co.jp/_shop_53618/" + item_url;
 }
 </script>
 

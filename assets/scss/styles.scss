@@ -93,7 +93,6 @@ a {
     .content {
       padding: 24px;
       background: #fff;
-      text-align: center;
       min-height: 100%;
     }
   }
@@ -110,7 +109,30 @@ body {
   .features {
     .feature {
       margin: 0 auto;
+
+      h2 {
+        text-align: center;
+      }
     }
+
+    .search-keyword {
+      display: flex;
+
+      .search-bar {
+        width: 100%;
+        margin-right: 15px;
+      }
+    }
+
+    .search-condition{
+      .chk-search{
+        .chk-item{
+          display: inline-block;
+          width: 25%;
+        }
+      }
+    }
+
 
     .feature-auth {
       max-width: 600px;
@@ -152,7 +174,7 @@ body {
         }
       }
 
-      .icon-review{
+      .icon-review {
         font-size: 18px;
       }
     }
@@ -203,13 +225,14 @@ body {
       }
     }
 
-    .block-product{
-      .ant-descriptions-view{
-        tbody{
-          tr{
-            &:first-child{
+    .block-product {
+      .ant-descriptions-view {
+        tbody {
+          tr {
+            &:first-child {
               color: rgba(0, 0, 0, 0.85);
             }
+
             text-align: center;
           }
         }

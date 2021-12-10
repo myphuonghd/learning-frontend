@@ -115,24 +115,27 @@ body {
       }
     }
 
-    .search-keyword {
-      display: flex;
+    .search-product{
+      margin-bottom: 24px;
 
-      .search-bar {
-        width: 100%;
-        margin-right: 15px;
+      .search-keyword {
+        display: flex;
+
+        .search-bar {
+          width: 100%;
+          margin-right: 15px;
+        }
       }
-    }
 
-    .search-condition{
-      .chk-search{
-        .chk-item{
-          display: inline-block;
-          width: 25%;
+      .search-condition{
+        .chk-search{
+          .chk-item{
+            display: inline-block;
+            width: 25%;
+          }
         }
       }
     }
-
 
     .feature-auth {
       max-width: 600px;

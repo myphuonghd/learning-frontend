@@ -1,6 +1,7 @@
 <template>
   <div class="feature feature-order">
     <h2>Order Management</h2>
+    <a-divider/>
     <a-table
       :columns="columns"
       :row-key="record => record.orderNumber"

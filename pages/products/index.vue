@@ -1,13 +1,14 @@
 <template>
   <div class="feature feature-product">
     <h2>Product Management</h2>
-    <div class="filter">
+    <a-divider/>
+    <div class="search-product">
       <a-row :gutter="24">
-        <a-col :span="16" :offset="4">
+        <a-col :lg="{ span: 24, offset: 0 }" :xl="{ span: 16, offset: 4 }">
           <div class="search-keyword">
             <div class="search-bar">
               <a-input-search
-                placeholder="input search text"
+                placeholder="Enter product code or product name"
                 :loading="loading"
                 @search="onSearch"
               />
@@ -15,9 +16,10 @@
           </div>
           <div class="search-condition">
             <a-tree
-              show-icon
               :selectable="false"
               :checkable="true"
+              @check="onCheck"
+              @expand="onExpand"
             >
               <a-icon slot="switcherIcon" type="filter"/>
               <a-tree-node
@@ -26,33 +28,15 @@
                 :checkable="false"
                 class="chk-search"
               >
-                <a-tree-node class="chk-item" key="0-0-0" title="Taxable" :checkable="true" isLeaf/>
-                <a-tree-node class="chk-item" key="0-0-1" title="Free Ship" :checkable="true" isLeaf/>
-                <a-tree-node class="chk-item" key="0-0-2" title="Now Ship" :checkable="true" isLeaf/>
-                <a-tree-node class="chk-item" key="0-0-3" title="Hide" :checkable="true" isLeaf/>
+                <a-tree-node class="chk-item" key="isIncludedTax" title="Taxable" :checkable="true" isLeaf/>
+                <a-tree-node class="chk-item" key="isIncludedPostage" title="Free Ship" :checkable="true" isLeaf/>
+                <a-tree-node class="chk-item" key="asurakuDeliveryId" title="Now Ship" :checkable="true" isLeaf/>
+                <a-tree-node class="chk-item" key="isDepot" title="Hide" :checkable="true" isLeaf/>
               </a-tree-node>
             </a-tree>
           </div>
         </a-col>
       </a-row>
-      <a-row>
-        <a-col :span="12">
-          <a-row>
-
-          </a-row>
-          <a-divider/>
-          <div class="search-type">
-
-          </div>
-          <a-checkbox :indeterminate="indeterminate" :checked="checkAll" @change="onCheckAllChange">
-            Check all
-          </a-checkbox>
-          <div class="search-condition">
-            <a-checkbox-group v-model="checkedList" :options="plainOptions" @change="onChange"/>
-          </div>
-        </a-col>
-      </a-row>
-      <a-divider/>
     </div>
     <a-table
       :columns="columns"
@@ -85,14 +69,17 @@
       <template slot="slot-price" slot-scope="itemPrice">
         {{ formatNumber(itemPrice) }}
       </template>
-      <template slot="slot-taxable" slot-scope="isIncludedTax">
-        <TagYesNo :value="isIncludedTax"/>
+      <template slot="slot-taxable" slot-scope="index">
+        <TagYesNo :value="index === 1"/>
       </template>
-      <template slot="slot-ship-free" slot-scope="isIncludedPostage">
-        <TagYesNo :value="isIncludedPostage"/>
+      <template slot="slot-free-ship" slot-scope="index">
+        <TagYesNo :value="index === 1"/>
       </template>
-      <template slot="slot-hide" slot-scope="isDepot">
-        <TagYesNo :value="isDepot"/>
+      <template slot="slot-now-ship" slot-scope="index">
+        <TagYesNo :value="index === 1"/>
+      </template>
+      <template slot="slot-hide" slot-scope="index">
+        <TagYesNo :value="index === 0"/>
       </template>
       <template slot="slot-reg-date" slot-scope="registDate">
         {{ formatDate(registDate) }}
@@ -222,9 +209,6 @@
 import TagYesNo from '@/components/TagYesNo'
 import {Empty} from 'ant-design-vue';
 
-const plainOptions       = ['Taxable', 'Free Ship', 'Now Ship', 'Hide'];
-const defaultCheckedList = [];
-
 export default {
   beforeCreate() {
     this.no_image = Empty.PRESENTED_IMAGE_SIMPLE;
@@ -248,37 +232,50 @@ export default {
         visible : false,
       },
       loading_update: false,
+      is_active     : false,
+      params        : {
+        isIncludedTax    : null,
+        isIncludedPostage: null,
+        asurakuDeliveryId: null,
+        isDepot          : null,
+      },
+
       isEmpty,
       formatNumber,
       formatDate,
       renderRakutenUrl,
-
-      checkedList  : defaultCheckedList,
-      indeterminate: true,
-      checkAll     : false,
-      plainOptions,
+      sortedInfo: null,
     };
   },
   mounted() {
     this.fetch({});
   },
   methods: {
-    onSelect(selectedKeys, info) {
-      console.log('selected', selectedKeys, info);
+    onCheck(checkedKeys) {
+      let isIncludedTax     = checkedKeys.indexOf('isIncludedTax') !== -1;
+      let isIncludedPostage = checkedKeys.indexOf('isIncludedPostage') !== -1;
+      let asurakuDeliveryId = checkedKeys.indexOf('asurakuDeliveryId') !== -1;
+      let isDepot           = checkedKeys.indexOf('isDepot') !== -1;
+
+      this.params = {
+        ...this.params,
+        isIncludedTax    : isIncludedTax,
+        isIncludedPostage: isIncludedPostage,
+        asurakuDeliveryId: asurakuDeliveryId,
+        isDepot          : isDepot,
+      }
     },
-    onCheck(checkedKeys, info) {
-      console.log('onCheck', checkedKeys, info);
-    },
-    onChange(checkedList) {
-      this.indeterminate = !!checkedList.length && checkedList.length < plainOptions.length;
-      this.checkAll      = checkedList.length === plainOptions.length;
-    },
-    onCheckAllChange(e) {
-      Object.assign(this, {
-        checkedList  : e.target.checked ? plainOptions : [],
-        indeterminate: false,
-        checkAll     : e.target.checked,
-      });
+    onExpand(expandedKeys, {expanded}) {
+      if (expanded === false) {
+        this.params = {
+          ...this.params,
+          isIncludedTax    : null,
+          isIncludedPostage: null,
+          asurakuDeliveryId: null,
+          isDepot          : null,
+        }
+      }
+      this.is_active = expanded;
     },
     onClose() {
       if (this.loading_update !== true) {
@@ -287,8 +284,13 @@ export default {
         this.$message.warn('Please waiting upload product.')
       }
     },
-    async onSearch(value) {
-
+    onSearch(value) {
+      let params = this.is_active ? {...this.params} : {};
+      params     = {
+        ...params,
+        keyword: value,
+      }
+      this.fetch(params);
     },
     async onUpdate(e) {
       const code              = e.currentTarget.value
@@ -483,14 +485,6 @@ const columns = [
     dataIndex: 'itemName',
   },
   {
-    title      : 'Review',
-    align      : 'center',
-    width      : '100px',
-    scopedSlots: {
-      customRender: 'slot-review',
-    },
-  },
-  {
     title      : 'Price',
     dataIndex  : 'itemPrice',
     align      : 'center',
@@ -499,7 +493,33 @@ const columns = [
       customRender: 'slot-price',
     },
   },
-
+  {
+    title      : 'Taxable',
+    dataIndex  : 'isincludedTax',
+    width      : '100px',
+    align      : 'center',
+    scopedSlots: {
+      customRender: 'slot-taxable',
+    },
+  },
+  {
+    title      : 'Free Ship',
+    dataIndex  : 'isIncludedPostage',
+    width      : '100px',
+    align      : 'center',
+    scopedSlots: {
+      customRender: 'slot-free-ship',
+    },
+  },
+  {
+    title      : 'Now Ship',
+    dataIndex  : 'asurakuDeliveryId',
+    width      : '100px',
+    align      : 'center',
+    scopedSlots: {
+      customRender: 'slot-now-ship',
+    },
+  },
   {
     title      : 'Hide',
     dataIndex  : 'isDepot',

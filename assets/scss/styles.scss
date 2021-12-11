@@ -116,8 +116,7 @@ body {
     }
 
     .search-product{
-      margin-bottom: 24px;
-
+      margin-bottom: 12px;
       .search-keyword {
         display: flex;
 
@@ -134,6 +133,10 @@ body {
             width: 25%;
           }
         }
+      }
+      .group-action{
+        float: right;
+        margin-bottom: 24px;
       }
     }
 

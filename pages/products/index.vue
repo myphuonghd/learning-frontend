@@ -35,10 +35,28 @@
               </a-tree-node>
             </a-tree>
           </div>
+          <div class="group-action">
+<!--            <a-button
+              type="default"
+              icon="reload"
+              :disabled="!this.is_active"
+              @click="onReload"
+            >
+              Clear filter
+            </a-button>-->
+            <a-button
+              type="primary"
+              icon="plus"
+              @click="handleBtnAdd"
+            >
+              Post product
+            </a-button>
+          </div>
         </a-col>
       </a-row>
     </div>
     <a-table
+      :scroll="{ x: 1366 }"
       :columns="columns"
       :row-key="record => record.itemUrl"
       :data-source="data"
@@ -66,28 +84,44 @@
           <a-icon class="icon-review" type="eye"/>
         </a>
       </template>
-      <template slot="slot-price" slot-scope="itemPrice">
-        {{ formatNumber(itemPrice) }}
+      <template slot="slot-price" slot-scope="index">
+        {{ formatNumber(index) }}
       </template>
       <template slot="slot-taxable" slot-scope="index">
-        <TagYesNo :value="index === 1"/>
+        <TagYesNo :value="index"/>
       </template>
       <template slot="slot-free-ship" slot-scope="index">
-        <TagYesNo :value="index === 1"/>
+        <TagYesNo :value="index"/>
       </template>
       <template slot="slot-now-ship" slot-scope="index">
-        <TagYesNo :value="index === 1"/>
+        <TagYesNo :value="index"/>
       </template>
       <template slot="slot-hide" slot-scope="index">
-        <TagYesNo :value="index === 0"/>
+        <TagYesNo :value="index"/>
       </template>
       <template slot="slot-reg-date" slot-scope="registDate">
         {{ formatDate(registDate) }}
       </template>
+      <template slot="slot-action" slot-scope="index, product">
+        <a-button
+          icon="edit"
+          type="primary"
+          @click="handleClickRow"
+          :data-name="product.itemName"
+          :value="product.itemUrl"
+        />
+        <a-button
+          icon="delete"
+          type="danger"
+          @click="showDeleteConfirm"
+          :data-name="product.itemName"
+          :value="product.itemUrl"
+        />
+      </template>
     </a-table>
     <a-drawer
       class="draw-wrap"
-      :title="product.itemName"
+      :title="product.title"
       :width="720"
       :visible="product.visible"
       @close="onClose"
@@ -106,8 +140,7 @@
                   <a-empty :description="false" :image="this.no_image"/>
                 </template>
                 <template v-else>
-                  <img slot="cover"
-                       :src="product.data.image.imageUrl"
+                  <img slot="cover" :src="product.data.image"
                   />
                 </template>
               </div>
@@ -117,9 +150,11 @@
           <a-form-item
             label="Code"
           >
-            <a-input
-              :value="product.data.itemUrl"
+            <a-input-number
+              v-decorator="['itemUrl']"
               placeholder="Product code"
+              :disabled="product.is_update"
+              style="width: 100%"
             />
           </a-form-item>
           <a-form-item
@@ -144,60 +179,61 @@
           <a-form-item label="Taxable">
             <a-radio-group
               v-decorator="['isIncludedTax']">
-              <a-radio :value="true">
-                <TagYesNo :value="true"/>
+              <a-radio :value="1">
+                <TagYesNo :value="1"/>
               </a-radio>
-              <a-radio :value="false">
-                <TagYesNo :value="false"/>
+              <a-radio :value="0">
+                <TagYesNo :value="0"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
           <a-form-item label="Free Ship">
             <a-radio-group
               v-decorator="['isIncludedPostage']">
-              <a-radio :value="true">
-                <TagYesNo :value="true"/>
+              <a-radio :value="1">
+                <TagYesNo :value="1"/>
               </a-radio>
-              <a-radio :value="false">
-                <TagYesNo :value="false"/>
+              <a-radio :value="0">
+                <TagYesNo :value="0"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
           <a-form-item label="Now Ship">
             <a-radio-group
               v-decorator="['asurakuDeliveryId']">
-              <a-radio :value="true">
-                <TagYesNo :value="true"/>
+              <a-radio :value="1">
+                <TagYesNo :value="1"/>
               </a-radio>
-              <a-radio :value="false">
-                <TagYesNo :value="false"/>
+              <a-radio :value="0">
+                <TagYesNo :value="0"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
           <a-form-item label="Hide">
             <a-radio-group
               v-decorator="['isDepot']">
-              <a-radio :value="true">
-                <TagYesNo :value="true"/>
+              <a-radio :value="1">
+                <TagYesNo :value="1"/>
               </a-radio>
-              <a-radio :value="false">
-                <TagYesNo :value="false"/>
+              <a-radio :value="0">
+                <TagYesNo :value="0"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
           <a-divider/>
-          <a-descriptions :column="24">
-            <a-descriptions-item label="Review" :span="24">
-              <a target="_blank"
-                 :href="renderRakutenUrl(product.data.itemNumber)">{{ renderRakutenUrl(product.data.itemNumber) }}</a>
-            </a-descriptions-item>
-          </a-descriptions>
         </a-form>
       </template>
       <div class="drawer-footer">
-        <a-button :loading="loading_update" :value="product.itemUrl" type="primary" @click="onUpdate">
-          Update
-        </a-button>
+        <template v-if="product.is_update">
+          <a-button :loading="product.loading_submit" :value="product.itemUrl" type="primary" @click="onUpdate">
+            Update
+          </a-button>
+        </template>
+        <template v-else>
+          <a-button :loading="product.loading_submit" type="primary" @click="onStore">
+            Post
+          </a-button>
+        </template>
         <a-button class="btn-close" @click="onClose">
           Cancel
         </a-button>
@@ -219,21 +255,22 @@ export default {
   },
   data() {
     return {
-      data          : [],
-      pagination    : {},
-      loading       : true,
+      data      : [],
+      pagination: {},
+      loading   : true,
       columns,
-      form          : this.$form.createForm(this),
-      product       : {
-        data    : {},
-        loading : false,
-        itemUrl : null,
-        itemName: '',
-        visible : false,
+      form      : this.$form.createForm(this),
+      product   : {
+        data          : {},
+        loading       : false,
+        image         : null,
+        itemName      : '',
+        visible       : false,
+        is_update     : false,
+        loading_submit: false,
       },
-      loading_update: false,
-      is_active     : false,
-      params        : {
+      is_active : false,
+      params    : {
         isIncludedTax    : null,
         isIncludedPostage: null,
         asurakuDeliveryId: null,
@@ -244,7 +281,6 @@ export default {
       formatNumber,
       formatDate,
       renderRakutenUrl,
-      sortedInfo: null,
     };
   },
   mounted() {
@@ -277,8 +313,22 @@ export default {
       }
       this.is_active = expanded;
     },
+
+   /* onReload() {
+      this.is_active = false;
+      this.params    = {
+        ...this.params,
+        isIncludedTax    : null,
+        isIncludedPostage: null,
+        asurakuDeliveryId: null,
+        isDepot          : null,
+      }
+      this.fetch({
+        page: 1,
+      });
+    },*/
     onClose() {
-      if (this.loading_update !== true) {
+      if (this.product.loading_submit !== true) {
         this.product.visible = false;
       } else {
         this.$message.warn('Please waiting upload product.')
@@ -289,134 +339,125 @@ export default {
       params     = {
         ...params,
         keyword: value,
+        page   : 1,
       }
       this.fetch(params);
     },
     async onUpdate(e) {
-      const code              = e.currentTarget.value
-      this.loading_update     = true;
-      let is_success          = false;
-      const itemName          = this.form.getFieldValue('itemName');
-      const itemPrice         = this.form.getFieldValue('itemPrice');
-      const isIncludedTax     = this.form.getFieldValue('isIncludedTax');
-      const isIncludedPostage = this.form.getFieldValue('isIncludedPostage');
-      const asurakuDeliveryId = this.form.getFieldValue('asurakuDeliveryId');
-      const isDepot           = this.form.getFieldValue('isDepot');
+      const code                  = e.currentTarget.value
+      this.product.loading_submit = true;
+      let is_success              = false;
 
-      await this.$axios.$post('products/update/' + code, {
-        itemName         : itemName,
-        itemPrice        : itemPrice,
-        isIncludedTax    : isIncludedTax,
-        isIncludedPostage: isIncludedPostage,
-        asurakuDeliveryId: asurakuDeliveryId,
-        isDepot          : isDepot,
-      }).then(() => {
+      let data = {
+        itemName         : this.form.getFieldValue('itemName'),
+        itemPrice        : this.form.getFieldValue('itemPrice'),
+        isIncludedTax    : this.form.getFieldValue('isIncludedTax'),
+        isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
+        asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
+        isDepot          : this.form.getFieldValue('isDepot'),
+      }
+
+      await this.$axios.$put('products/' + code, data).then((response) => {
+        is_success        = true;
+        const data        = response.data;
+        this.product.data = {...data}
+        this.setFormData(this.product.data)
+      }).catch(err => {
+        if (err.response !== undefined && err.response.status === 422) {
+          const errors = err.response.data.errors;
+          this.setFormData(data, errors)
+        }
+      });
+
+      this.product.loading_submit = false;
+      if (is_success) {
+        this.$message.success('Post product success.')
+        await this.fetch({
+          page: this.pagination.current,
+        });
+      }
+    },
+
+    async onStore() {
+      this.product.loading_submit = true;
+      let is_success              = false;
+
+      let data = {
+        itemName         : this.form.getFieldValue('itemName'),
+        itemPrice        : this.form.getFieldValue('itemPrice'),
+        isIncludedTax    : this.form.getFieldValue('isIncludedTax'),
+        isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
+        asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
+        isDepot          : this.form.getFieldValue('isDepot'),
+      }
+
+      await this.$axios.$post('products', data).then(() => {
         is_success = true;
       }).catch(err => {
         if (err.response !== undefined && err.response.status === 422) {
           const errors = err.response.data.errors;
-          this.form.setFields({
-            'itemName'         : {
-              value : itemName,
-              errors: errors.itemName !== undefined ? [
-                {
-                  "message": errors.itemName,
-                }
-              ] : null
-            },
-            'itemPrice'        : {
-              value : itemPrice,
-              errors: errors.itemPrice !== undefined ? [
-                {
-                  "message": errors.itemPrice,
-                }
-              ] : null
-            },
-            'isIncludedTax'    : {
-              value : isIncludedTax,
-              errors: errors.isIncludedTax !== undefined ? [
-                {
-                  "message": errors.isIncludedTax,
-                }
-              ] : null
-            },
-            'isIncludedPostage': {
-              value : isIncludedPostage,
-              errors: errors.isIncludedPostage !== undefined ? [
-                {
-                  "message": errors.isIncludedPostage,
-                }
-              ] : null
-            },
-            'asurakuDeliveryId': {
-              value : asurakuDeliveryId,
-              errors: errors.asurakuDeliveryId !== undefined ? [
-                {
-                  "message": errors.asurakuDeliveryId,
-                }
-              ] : null
-            },
-            'isDepot'          : {
-              value : isDepot,
-              errors: null
-            },
-          });
+          this.setFormData(data, errors)
         }
       });
 
-      this.loading_update = false;
+      this.product.loading_submit = false;
       if (is_success) {
+        this.product.is_update = true;
         this.$message.success('Update product success.')
         await this.fetch({
-          results: this.pagination.pageSize,
-          page   : this.pagination.current,
+          page: this.pagination.current,
         });
       }
     },
-    async handleClickRow(e) {
+
+    async showDeleteConfirm(e) {
       const item_url = e.currentTarget.value
 
       if (isEmpty(item_url)) {
         return;
       }
       const itemName = e.currentTarget.getAttribute('data-name');
+      this.$confirm({
+        title     : 'Are you sure delete ' + item_url + ' ?',
+        content   : itemName,
+        okText    : 'Yes',
+        okType    : 'danger',
+        cancelText: 'No',
+        onOk      : async () => {
+          await this.$axios.$delete('products/' + item_url).then(() => {
+            this.$message.success('Delete success.')
+          }).finally(() => {
+            this.product.loading = false;
+          });
+        },
+      });
+    },
 
-      this.product.visible  = true;
-      this.product.loading  = true;
-      this.product.data     = {};
-      this.product.itemUrl  = item_url;
-      this.product.itemName = itemName;
+    handleBtnAdd() {
+      this.setFormData({})
+      this.product.title     = 'Post product';
+      this.product.is_update = false;
+      this.product.visible   = true;
+      this.product.loading   = false;
+    },
+
+    async handleClickRow(e) {
+      const item_url = e.currentTarget.value
+
+      if (isEmpty(item_url)) {
+        return;
+      }
+      this.product.itemUrl   = item_url;
+      this.product.title     = e.currentTarget.getAttribute('data-name');
+      this.product.data      = {};
+      this.product.is_update = true;
+      this.product.loading   = true;
+      this.product.visible   = true;
 
       await this.$axios.$get('products/' + item_url).then((response) => {
         const data        = response.data;
         this.product.data = {...data}
-
-        this.form.setFields({
-          'itemName'         : {
-            value : data.itemName,
-            errors: null
-          },
-          'itemPrice'        : {
-            value : data.itemPrice,
-            errors: null
-          },
-          'isIncludedTax'    : {
-            value : data.isIncludedTax,
-            errors: null
-          },
-          'isIncludedPostage': {
-            value : data.isIncludedPostage,
-            errors: null
-          },
-          'asurakuDeliveryId': {
-            value : data.asurakuDeliveryId,
-            errors: null
-          },
-          'isDepot'          : {
-            value : data.isDepot,
-            errors: null
-          },
-        });
+        this.setFormData(this.product.data)
       }).finally(() => {
         this.product.loading = false;
       });
@@ -458,6 +499,67 @@ export default {
         this.loading = false;
       })
     },
+
+    setFormData(data = {}, errors = {}) {
+      this.form.setFields({
+        'itemUrl'          : {
+          value : data.itemUrl,
+          errors: errors.itemUrl !== undefined ? [
+            {
+              "message": errors.itemUrl,
+            }
+          ] : null
+        },
+        'itemName'         : {
+          value : data.itemName,
+          errors: errors.itemName !== undefined ? [
+            {
+              "message": errors.itemName,
+            }
+          ] : null
+        },
+        'itemPrice'        : {
+          value : data.itemPrice,
+          errors: errors.itemPrice !== undefined ? [
+            {
+              "message": errors.itemPrice,
+            }
+          ] : null
+        },
+        'isIncludedTax'    : {
+          value : data.isIncludedTax,
+          errors: errors.isIncludedTax !== undefined ? [
+            {
+              "message": errors.isIncludedTax,
+            }
+          ] : null
+        },
+        'isIncludedPostage': {
+          value : data.isIncludedPostage,
+          errors: errors.isIncludedPostage !== undefined ? [
+            {
+              "message": errors.isIncludedPostage,
+            }
+          ] : null
+        },
+        'asurakuDeliveryId': {
+          value : data.asurakuDeliveryId,
+          errors: errors.asurakuDeliveryId !== undefined ? [
+            {
+              "message": errors.asurakuDeliveryId,
+            }
+          ] : null
+        },
+        'isDepot'          : {
+          value : data.isDepot,
+          errors: errors.isDepot !== undefined ? [
+            {
+              "message": errors.isDepot,
+            }
+          ] : null
+        },
+      });
+    }
   },
 }
 
@@ -495,7 +597,7 @@ const columns = [
   },
   {
     title      : 'Taxable',
-    dataIndex  : 'isincludedTax',
+    dataIndex  : 'isIncludedTax',
     width      : '100px',
     align      : 'center',
     scopedSlots: {
@@ -530,13 +632,12 @@ const columns = [
     },
   },
   {
-    title      : 'Reg Date',
-    dataIndex  : 'registDate',
-    width      : '200px',
+    title      : 'Action',
+    dataIndex  : 'action',
+    width      : 100,
     align      : 'center',
-    sorter     : true,
     scopedSlots: {
-      customRender: 'slot-reg-date',
+      customRender: 'slot-action',
     },
   },
 ];

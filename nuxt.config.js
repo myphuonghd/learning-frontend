@@ -73,7 +73,7 @@ export default {
    */
   axios: {
     // See https://github.com/nuxt-community/axios-module#options
-    baseURL: "http://192.168.1.2:8080/api/v1"
+    baseURL: "http://192.168.1.6:8080/api/v1"
   },
 
   auth: {

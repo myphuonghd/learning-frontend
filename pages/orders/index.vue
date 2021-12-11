@@ -120,7 +120,7 @@
               </a-descriptions-item>
             </template>
           </a-descriptions>
-          <template v-if="product.itemNumber !== null">
+          <template v-if="product.itemUrl !== null">
             <a-drawer
               :title="product.itemName"
               width="640"
@@ -143,7 +143,7 @@
                       </template>
                       <template v-else>
                         <img slot="cover"
-                             :src="product.data.image.imageUrl"
+                             :src="product.data.image"
                         />
                       </template>
                     </div>
@@ -168,12 +168,6 @@
                   </a-descriptions-item>
                   <a-descriptions-item label="Hide" :span="8">
                     <TagYesNo :value="product.data.isDepot"/>
-                  </a-descriptions-item>
-                </a-descriptions>
-                <a-divider/>
-                <a-descriptions :column="24">
-                  <a-descriptions-item label="Review" :span="24">
-                    <a target="_blank" :href="renderRakutenUrl(product.data.itemNumber)">{{ renderRakutenUrl(product.data.itemNumber) }}</a>
                   </a-descriptions-item>
                 </a-descriptions>
               </template>
@@ -228,9 +222,6 @@ export default {
     this.fetch();
   },
   methods: {
-    showDrawer() {
-      this.order.visible = true;
-    },
     onClose() {
       this.order.visible = false;
     },
@@ -242,15 +233,15 @@ export default {
         return;
       }
 
-      this.product.visible    = true;
-      this.product.loading    = true;
-      this.product.data       = {};
-      this.product.itemNumber = itemNumber;
-      this.product.itemName   = itemName;
+      this.product.visible  = true;
+      this.product.loading  = true;
+      this.product.data     = {};
+      this.product.itemName = itemName;
 
       await this.$axios.$get('products/' + itemNumber).then((response) => {
-        const data        = response.data;
-        this.product.data = {...data}
+        const data              = response.data;
+        this.product.itemNumber = data.itemUrl;
+        this.product.data       = {...data}
       }).finally(() => {
         this.product.loading = false;
       });
@@ -445,7 +436,7 @@ function formatBirthday(year, month, date) {
   return year + '-' + month + '-' + date;
 }
 
-function renderRakutenUrl(item_url){
+function renderRakutenUrl(item_url) {
   return "https://item.rakuten.co.jp/_shop_53618/" + item_url;
 }
 </script>

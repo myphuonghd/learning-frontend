@@ -36,14 +36,14 @@
             </a-tree>
           </div>
           <div class="group-action">
-<!--            <a-button
-              type="default"
-              icon="reload"
-              :disabled="!this.is_active"
-              @click="onReload"
-            >
-              Clear filter
-            </a-button>-->
+            <!--            <a-button
+                          type="default"
+                          icon="reload"
+                          :disabled="!this.is_active"
+                          @click="onReload"
+                        >
+                          Clear filter
+                        </a-button>-->
             <a-button
               type="primary"
               icon="plus"
@@ -179,44 +179,44 @@
           <a-form-item label="Taxable">
             <a-radio-group
               v-decorator="['isIncludedTax']">
-              <a-radio :value="1">
-                <TagYesNo :value="1"/>
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
               </a-radio>
-              <a-radio :value="0">
-                <TagYesNo :value="0"/>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
           <a-form-item label="Free Ship">
             <a-radio-group
               v-decorator="['isIncludedPostage']">
-              <a-radio :value="1">
-                <TagYesNo :value="1"/>
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
               </a-radio>
-              <a-radio :value="0">
-                <TagYesNo :value="0"/>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
           <a-form-item label="Now Ship">
             <a-radio-group
               v-decorator="['asurakuDeliveryId']">
-              <a-radio :value="1">
-                <TagYesNo :value="1"/>
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
               </a-radio>
-              <a-radio :value="0">
-                <TagYesNo :value="0"/>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
           <a-form-item label="Hide">
             <a-radio-group
               v-decorator="['isDepot']">
-              <a-radio :value="1">
-                <TagYesNo :value="1"/>
+              <a-radio :value="true">
+                <TagYesNo :value="true"/>
               </a-radio>
-              <a-radio :value="0">
-                <TagYesNo :value="0"/>
+              <a-radio :value="false">
+                <TagYesNo :value="false"/>
               </a-radio>
             </a-radio-group>
           </a-form-item>
@@ -255,26 +255,26 @@ export default {
   },
   data() {
     return {
-      data      : [],
+      data:       [],
       pagination: {},
-      loading   : true,
+      loading:    true,
       columns,
-      form      : this.$form.createForm(this),
-      product   : {
-        data          : {},
-        loading       : false,
-        image         : null,
-        itemName      : '',
-        visible       : false,
-        is_update     : false,
+      form:       this.$form.createForm(this),
+      product:    {
+        data:           {},
+        loading:        false,
+        image:          null,
+        itemName:       '',
+        visible:        false,
+        is_update:      false,
         loading_submit: false,
       },
-      is_active : false,
-      params    : {
-        isIncludedTax    : null,
+      is_active:  false,
+      params:     {
+        isIncludedTax:     null,
         isIncludedPostage: null,
         asurakuDeliveryId: null,
-        isDepot          : null,
+        isDepot:           null,
       },
 
       isEmpty,
@@ -295,38 +295,38 @@ export default {
 
       this.params = {
         ...this.params,
-        isIncludedTax    : isIncludedTax,
+        isIncludedTax:     isIncludedTax,
         isIncludedPostage: isIncludedPostage,
         asurakuDeliveryId: asurakuDeliveryId,
-        isDepot          : isDepot,
+        isDepot:           isDepot,
       }
     },
     onExpand(expandedKeys, {expanded}) {
       if (expanded === false) {
         this.params = {
           ...this.params,
-          isIncludedTax    : null,
+          isIncludedTax:     null,
           isIncludedPostage: null,
           asurakuDeliveryId: null,
-          isDepot          : null,
+          isDepot:           null,
         }
       }
       this.is_active = expanded;
     },
 
-   /* onReload() {
-      this.is_active = false;
-      this.params    = {
-        ...this.params,
-        isIncludedTax    : null,
-        isIncludedPostage: null,
-        asurakuDeliveryId: null,
-        isDepot          : null,
-      }
-      this.fetch({
-        page: 1,
-      });
-    },*/
+    /* onReload() {
+       this.is_active = false;
+       this.params    = {
+         ...this.params,
+         isIncludedTax    : null,
+         isIncludedPostage: null,
+         asurakuDeliveryId: null,
+         isDepot          : null,
+       }
+       this.fetch({
+         page: 1,
+       });
+     },*/
     onClose() {
       if (this.product.loading_submit !== true) {
         this.product.visible = false;
@@ -339,7 +339,7 @@ export default {
       params     = {
         ...params,
         keyword: value,
-        page   : 1,
+        page:    1,
       }
       this.fetch(params);
     },
@@ -349,12 +349,12 @@ export default {
       let is_success              = false;
 
       let data = {
-        itemName         : this.form.getFieldValue('itemName'),
-        itemPrice        : this.form.getFieldValue('itemPrice'),
-        isIncludedTax    : this.form.getFieldValue('isIncludedTax'),
+        itemName:          this.form.getFieldValue('itemName'),
+        itemPrice:         this.form.getFieldValue('itemPrice'),
+        isIncludedTax:     this.form.getFieldValue('isIncludedTax'),
         isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
         asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
-        isDepot          : this.form.getFieldValue('isDepot'),
+        isDepot:           this.form.getFieldValue('isDepot'),
       }
 
       await this.$axios.$put('products/' + code, data).then((response) => {
@@ -371,7 +371,7 @@ export default {
 
       this.product.loading_submit = false;
       if (is_success) {
-        this.$message.success('Post product success.')
+        this.$message.success('Update product success.')
         await this.fetch({
           page: this.pagination.current,
         });
@@ -383,16 +383,18 @@ export default {
       let is_success              = false;
 
       let data = {
-        itemName         : this.form.getFieldValue('itemName'),
-        itemPrice        : this.form.getFieldValue('itemPrice'),
-        isIncludedTax    : this.form.getFieldValue('isIncludedTax'),
+        itemUrl:           this.form.getFieldValue('itemUrl'),
+        itemName:          this.form.getFieldValue('itemName'),
+        itemPrice:         this.form.getFieldValue('itemPrice'),
+        isIncludedTax:     this.form.getFieldValue('isIncludedTax'),
         isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
         asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
-        isDepot          : this.form.getFieldValue('isDepot'),
+        isDepot:           this.form.getFieldValue('isDepot'),
       }
 
       await this.$axios.$post('products', data).then(() => {
         is_success = true;
+        this.setFormData(data)
       }).catch(err => {
         if (err.response !== undefined && err.response.status === 422) {
           const errors = err.response.data.errors;
@@ -402,8 +404,9 @@ export default {
 
       this.product.loading_submit = false;
       if (is_success) {
+        this.product.visible   = false;
         this.product.is_update = true;
-        this.$message.success('Update product success.')
+        this.$message.success('Post product success.')
         await this.fetch({
           page: this.pagination.current,
         });
@@ -418,17 +421,26 @@ export default {
       }
       const itemName = e.currentTarget.getAttribute('data-name');
       this.$confirm({
-        title     : 'Are you sure delete ' + item_url + ' ?',
-        content   : itemName,
-        okText    : 'Yes',
-        okType    : 'danger',
+        title:      'Are you sure delete ' + item_url + ' ?',
+        content:    itemName,
+        okText:     'Yes',
+        okType:     'danger',
         cancelText: 'No',
-        onOk      : async () => {
+        onOk:       async () => {
+          let is_success = false;
           await this.$axios.$delete('products/' + item_url).then(() => {
-            this.$message.success('Delete success.')
+            is_success = true;
           }).finally(() => {
             this.product.loading = false;
           });
+
+          if (is_success) {
+            await this.fetch({
+              page: this.pagination.current,
+            });
+            this.$message.success('Delete success.')
+          }
+
         },
       });
     },
@@ -478,8 +490,8 @@ export default {
 
       this.fetch({
         results: pagination.pageSize,
-        page   : pagination.current,
-        sort   : order,
+        page:    pagination.current,
+        sort:    order,
       });
     },
     async fetch(params = {}) {
@@ -493,7 +505,7 @@ export default {
         // Read total count from server
         pagination.total    = data.meta.total;
         pagination.pageSize = data.meta.results;
-        this.data           = data.data;
+        this.data           = data.data
         this.pagination     = pagination;
       }).finally(() => {
         this.loading = false;
@@ -502,32 +514,32 @@ export default {
 
     setFormData(data = {}, errors = {}) {
       this.form.setFields({
-        'itemUrl'          : {
-          value : data.itemUrl,
+        'itemUrl':           {
+          value:  data.itemUrl,
           errors: errors.itemUrl !== undefined ? [
             {
               "message": errors.itemUrl,
             }
           ] : null
         },
-        'itemName'         : {
-          value : data.itemName,
+        'itemName':          {
+          value:  data.itemName,
           errors: errors.itemName !== undefined ? [
             {
               "message": errors.itemName,
             }
           ] : null
         },
-        'itemPrice'        : {
-          value : data.itemPrice,
+        'itemPrice':         {
+          value:  data.itemPrice,
           errors: errors.itemPrice !== undefined ? [
             {
               "message": errors.itemPrice,
             }
           ] : null
         },
-        'isIncludedTax'    : {
-          value : data.isIncludedTax,
+        'isIncludedTax':     {
+          value:  data.isIncludedTax,
           errors: errors.isIncludedTax !== undefined ? [
             {
               "message": errors.isIncludedTax,
@@ -535,7 +547,7 @@ export default {
           ] : null
         },
         'isIncludedPostage': {
-          value : data.isIncludedPostage,
+          value:  data.isIncludedPostage,
           errors: errors.isIncludedPostage !== undefined ? [
             {
               "message": errors.isIncludedPostage,
@@ -543,15 +555,15 @@ export default {
           ] : null
         },
         'asurakuDeliveryId': {
-          value : data.asurakuDeliveryId,
+          value:  data.asurakuDeliveryId,
           errors: errors.asurakuDeliveryId !== undefined ? [
             {
               "message": errors.asurakuDeliveryId,
             }
           ] : null
         },
-        'isDepot'          : {
-          value : data.isDepot,
+        'isDepot':           {
+          value:  data.isDepot,
           errors: errors.isDepot !== undefined ? [
             {
               "message": errors.isDepot,
@@ -565,77 +577,77 @@ export default {
 
 const columns = [
   {
-    title      : 'Code',
-    dataIndex  : 'itemUrl',
-    width      : '100px',
-    align      : 'center',
+    title:       'Code',
+    dataIndex:   'itemUrl',
+    width:       '100px',
+    align:       'center',
     scopedSlots: {
       customRender: 'slot-item-url',
     },
   },
   {
-    title      : 'Image',
-    dataIndex  : 'image',
-    align      : 'center',
-    width      : '80px',
+    title:       'Image',
+    dataIndex:   'image',
+    align:       'center',
+    width:       '80px',
     scopedSlots: {
       customRender: 'slot-image',
     },
   },
   {
-    title    : 'Name',
+    title:     'Name',
     dataIndex: 'itemName',
   },
   {
-    title      : 'Price',
-    dataIndex  : 'itemPrice',
-    align      : 'center',
-    width      : '100px',
+    title:       'Price',
+    dataIndex:   'itemPrice',
+    align:       'center',
+    width:       '100px',
     scopedSlots: {
       customRender: 'slot-price',
     },
   },
   {
-    title      : 'Taxable',
-    dataIndex  : 'isIncludedTax',
-    width      : '100px',
-    align      : 'center',
+    title:       'Taxable',
+    dataIndex:   'isIncludedTax',
+    width:       '100px',
+    align:       'center',
     scopedSlots: {
       customRender: 'slot-taxable',
     },
   },
   {
-    title      : 'Free Ship',
-    dataIndex  : 'isIncludedPostage',
-    width      : '100px',
-    align      : 'center',
+    title:       'Free Ship',
+    dataIndex:   'isIncludedPostage',
+    width:       '100px',
+    align:       'center',
     scopedSlots: {
       customRender: 'slot-free-ship',
     },
   },
   {
-    title      : 'Now Ship',
-    dataIndex  : 'asurakuDeliveryId',
-    width      : '100px',
-    align      : 'center',
+    title:       'Now Ship',
+    dataIndex:   'asurakuDeliveryId',
+    width:       '100px',
+    align:       'center',
     scopedSlots: {
       customRender: 'slot-now-ship',
     },
   },
   {
-    title      : 'Hide',
-    dataIndex  : 'isDepot',
-    width      : '100px',
-    align      : 'center',
+    title:       'Hide',
+    dataIndex:   'isDepot',
+    width:       '100px',
+    align:       'center',
     scopedSlots: {
       customRender: 'slot-hide',
     },
   },
   {
-    title      : 'Action',
-    dataIndex  : 'action',
-    width      : 100,
-    align      : 'center',
+    title:       'Action',
+    dataIndex:   'action',
+    width:       100,
+    align:       'center',
     scopedSlots: {
       customRender: 'slot-action',
     },
@@ -665,11 +677,11 @@ function formatNumber(value) {
 function formatDate(value) {
   let date = new Date(value)
   return date.getFullYear() + "/" + ("00" + (date.getMonth() + 1)).slice(-2) + "/" +
-    ("00" + date.getDate()).slice(-2) +
-    " " +
-    ("00" + date.getHours()).slice(-2) + ":" +
-    ("00" + date.getMinutes()).slice(-2) + ":" +
-    ("00" + date.getSeconds()).slice(-2);
+         ("00" + date.getDate()).slice(-2) +
+         " " +
+         ("00" + date.getHours()).slice(-2) + ":" +
+         ("00" + date.getMinutes()).slice(-2) + ":" +
+         ("00" + date.getSeconds()).slice(-2);
 }
 
 function renderRakutenUrl(item_url) {

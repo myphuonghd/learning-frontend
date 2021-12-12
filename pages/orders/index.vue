@@ -226,6 +226,8 @@ export default {
       this.order.visible = false;
     },
     async handleDetailProduct(e) {
+      // Close
+      return;
       const itemNumber = e.currentTarget.value;
       const itemName   = e.currentTarget.getAttribute('data-name');
 

@@ -134,16 +134,33 @@
       <template>
         <a-form :hidden="product.loading === true || product.data === {}" :form="form" layout="vertical">
           <a-row :gutter="16">
-            <a-col :span="24">
+            <a-col :span="12">
               <div class="draw-product-img text-center">
                 <template v-if="this.isEmpty(product.data.image)">
                   <a-empty :description="false" :image="this.no_image"/>
                 </template>
                 <template v-else>
-                  <img slot="cover" :src="product.data.image"
-                  />
+                  <img slot="cover" :src="product.data.image"/>
                 </template>
               </div>
+            </a-col>
+            <a-col :span="12">
+              <a-upload
+                name="image"
+                list-type="picture-card"
+                class="draw-product-img text-center"
+                :show-upload-list="false"
+                :before-upload="beforeUpload"
+                @change="handleChange"
+              >
+                <img v-if="imageUrl" :src="imageUrl" alt="avatar"/>
+                <div v-else>
+                  <a-icon :type="loading_image ? 'loading' : 'plus'"/>
+                  <div class="ant-upload-text">
+                    Upload
+                  </div>
+                </div>
+              </a-upload>
             </a-col>
           </a-row>
           <a-divider/>
@@ -245,6 +262,12 @@
 import TagYesNo from '@/components/TagYesNo'
 import {Empty} from 'ant-design-vue';
 
+function getBase64(img, callback) {
+  const reader = new FileReader();
+  reader.addEventListener('load', () => callback(reader.result));
+  reader.readAsDataURL(img);
+}
+
 export default {
   beforeCreate() {
     this.no_image = Empty.PRESENTED_IMAGE_SIMPLE;
@@ -281,12 +304,50 @@ export default {
       formatNumber,
       formatDate,
       renderRakutenUrl,
+
+      imageUrl:      '',
+      imageFile:     null,
+      loading_image: false,
     };
   },
   mounted() {
     this.fetch({});
   },
   methods: {
+    handleChange(info) {
+      this.imageFile = null;
+      if (info.file.status === 'uploading') {
+        this.loading_image = true;
+        return;
+      }
+      if (info.file.status === 'done') {
+        // Get this url from response in real world.
+        getBase64(info.file.originFileObj, imageUrl => {
+          this.imageUrl      = imageUrl;
+          this.loading_image = false;
+        });
+
+        this.imageFile = info.file.originFileObj;
+      }
+    },
+    beforeUpload(file) {
+      const allow_files = [
+        'image/webp',
+        'image/jpeg',
+        'image/jpg',
+        'image/png',
+      ]
+
+      const rule_file = allow_files.indexOf(file.type) !== -1;
+      if (!rule_file) {
+        this.$message.error('You can only upload JPG, PNG, WEBP, JPEG file!');
+      }
+      const isLt2M = file.size / 1024 / 1024 < 2;
+      if (!isLt2M) {
+        this.$message.error('Image must smaller than 2MB!');
+      }
+      return rule_file && isLt2M;
+    },
     onCheck(checkedKeys) {
       let isIncludedTax     = checkedKeys.indexOf('isIncludedTax') !== -1;
       let isIncludedPostage = checkedKeys.indexOf('isIncludedPostage') !== -1;
@@ -330,10 +391,20 @@ export default {
     onClose() {
       if (this.product.loading_submit !== true) {
         this.product.visible = false;
+        this.resetForm();
       } else {
         this.$message.warn('Please waiting upload product.')
       }
     },
+
+    resetForm() {
+      this.product.data  = {};
+      this.product.image = null;
+      this.imageFile     = null;
+      this.imageUrl      = null;
+      this.setFormData();
+    },
+
     onSearch(value) {
       let params = this.is_active ? {...this.params} : {};
       params     = {
@@ -357,7 +428,20 @@ export default {
         isDepot:           this.form.getFieldValue('isDepot'),
       }
 
-      await this.$axios.$put('products/' + code, data).then((response) => {
+      let formData = new FormData();
+      formData.append('itemName', data.itemName !== undefined ? data.itemName : '');
+      formData.append('itemPrice', data.itemPrice !== undefined ? data.itemPrice : '');
+      formData.append('isIncludedTax', data.isIncludedTax === true ? '1' : '0');
+      formData.append('isIncludedPostage', data.isIncludedPostage === true ? '1' : '0');
+      formData.append('asurakuDeliveryId', data.asurakuDeliveryId === true ? '1' : '0');
+      formData.append('isDepot', data.isDepot === true ? '1' : '0');
+      formData.append('image', this.imageFile);
+
+      await this.$axios.$post('products/' + code, formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then((response) => {
         is_success        = true;
         const data        = response.data;
         this.product.data = {...data}
@@ -377,7 +461,6 @@ export default {
         });
       }
     },
-
     async onStore() {
       this.product.loading_submit = true;
       let is_success              = false;
@@ -392,7 +475,21 @@ export default {
         isDepot:           this.form.getFieldValue('isDepot'),
       }
 
-      await this.$axios.$post('products', data).then(() => {
+      let formData = new FormData();
+      formData.append('itemUrl', data.itemUrl !== undefined ? data.itemUrl : '');
+      formData.append('itemName', data.itemName !== undefined ? data.itemName : '');
+      formData.append('itemPrice', data.itemPrice !== undefined ? data.itemPrice : '');
+      formData.append('isIncludedTax', data.isIncludedTax === true ? '1' : '0');
+      formData.append('isIncludedPostage', data.isIncludedPostage === true ? '1' : '0');
+      formData.append('asurakuDeliveryId', data.asurakuDeliveryId === true ? '1' : '0');
+      formData.append('isDepot', data.isDepot === true ? '1' : '0');
+      formData.append('image', this.imageFile);
+
+      await this.$axios.$post('products', formData, {
+        headers: {
+          'Content-Type': 'multipart/form-data'
+        }
+      }).then(() => {
         is_success = true;
         this.setFormData(data)
       }).catch(err => {
@@ -405,14 +502,13 @@ export default {
       this.product.loading_submit = false;
       if (is_success) {
         this.product.visible   = false;
-        this.product.is_update = true;
         this.$message.success('Post product success.')
         await this.fetch({
           page: this.pagination.current,
         });
+        this.resetForm();
       }
     },
-
     async showDeleteConfirm(e) {
       const item_url = e.currentTarget.value
 
@@ -444,15 +540,23 @@ export default {
         },
       });
     },
-
-    handleBtnAdd() {
-      this.setFormData({})
+    async handleBtnAdd() {
       this.product.title     = 'Post product';
       this.product.is_update = false;
-      this.product.visible   = true;
       this.product.loading   = false;
-    },
+      this.product.visible   = true;
 
+      let data = {
+        itemUrl:           this.form.getFieldValue('itemUrl'),
+        itemName:          this.form.getFieldValue('itemName'),
+        itemPrice:         this.form.getFieldValue('itemPrice'),
+        isIncludedTax:     this.form.getFieldValue('isIncludedTax'),
+        isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
+        asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
+        isDepot:           this.form.getFieldValue('isDepot'),
+      }
+      await this.setFormData(data)
+    },
     async handleClickRow(e) {
       const item_url = e.currentTarget.value
 
@@ -511,7 +615,6 @@ export default {
         this.loading = false;
       })
     },
-
     setFormData(data = {}, errors = {}) {
       this.form.setFields({
         'itemUrl':           {
@@ -539,7 +642,7 @@ export default {
           ] : null
         },
         'isIncludedTax':     {
-          value:  data.isIncludedTax,
+          value:  data.isIncludedTax === true,
           errors: errors.isIncludedTax !== undefined ? [
             {
               "message": errors.isIncludedTax,
@@ -547,7 +650,7 @@ export default {
           ] : null
         },
         'isIncludedPostage': {
-          value:  data.isIncludedPostage,
+          value:  data.isIncludedPostage === true,
           errors: errors.isIncludedPostage !== undefined ? [
             {
               "message": errors.isIncludedPostage,
@@ -555,7 +658,7 @@ export default {
           ] : null
         },
         'asurakuDeliveryId': {
-          value:  data.asurakuDeliveryId,
+          value:  data.asurakuDeliveryId === true,
           errors: errors.asurakuDeliveryId !== undefined ? [
             {
               "message": errors.asurakuDeliveryId,
@@ -563,7 +666,7 @@ export default {
           ] : null
         },
         'isDepot':           {
-          value:  data.isDepot,
+          value:  data.isDepot === true,
           errors: errors.isDepot !== undefined ? [
             {
               "message": errors.isDepot,
@@ -688,5 +791,3 @@ function renderRakutenUrl(item_url) {
   return "https://item.rakuten.co.jp/_shop_53618/" + item_url;
 }
 </script>
-
-

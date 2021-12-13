@@ -55,6 +55,11 @@
         </a-col>
       </a-row>
     </div>
+    <div class="overview">
+      <span>From <span class="overview-value">{{ this.from }}</span> to <span class="overview-value">{{
+          this.to
+        }}</span> of <span class="overview-value">{{ this.total }}</span> rows.</span>
+    </div>
     <a-table
       :scroll="{ x: 1366 }"
       :columns="columns"
@@ -237,7 +242,6 @@
               </a-radio>
             </a-radio-group>
           </a-form-item>
-          <a-divider/>
         </a-form>
       </template>
       <div class="drawer-footer">
@@ -280,6 +284,9 @@ export default {
     return {
       data:       [],
       pagination: {},
+      from:       '-',
+      to:         '-',
+      total:      '-',
       loading:    true,
       columns,
       form:       this.$form.createForm(this),
@@ -435,7 +442,7 @@ export default {
       formData.append('isIncludedPostage', data.isIncludedPostage === true ? '1' : '0');
       formData.append('asurakuDeliveryId', data.asurakuDeliveryId === true ? '1' : '0');
       formData.append('isDepot', data.isDepot === true ? '1' : '0');
-      if (this.imageFile !== null){
+      if (this.imageFile !== null) {
         formData.append('image', this.imageFile);
       }
 
@@ -485,7 +492,7 @@ export default {
       formData.append('isIncludedPostage', data.isIncludedPostage === true ? '1' : '0');
       formData.append('asurakuDeliveryId', data.asurakuDeliveryId === true ? '1' : '0');
       formData.append('isDepot', data.isDepot === true ? '1' : '0');
-      if (this.imageFile !== null){
+      if (this.imageFile !== null) {
         formData.append('image', this.imageFile);
       }
 
@@ -505,7 +512,7 @@ export default {
 
       this.product.loading_submit = false;
       if (is_success) {
-        this.product.visible   = false;
+        this.product.visible = false;
         this.$message.success('Post product success.')
         await this.fetch({
           page: this.pagination.current,
@@ -618,6 +625,17 @@ export default {
       }).finally(() => {
         this.loading = false;
       })
+
+      this.total = isEmpty(this.pagination.total) ? 0 : this.pagination.total;
+      this.from  = '-';
+      this.to    = '-';
+      if (this.total > 0) {
+        let current_page = isEmpty(this.pagination.current) ? 1 : this.pagination.current;
+        let pageSize     = isEmpty(this.pagination.pageSize) ? 0 : this.pagination.pageSize;
+        let size         = current_page * pageSize;
+        this.from        = size - pageSize + 1;
+        this.to          = size >= this.total ? this.total : size;
+      }
     },
     setFormData(data = {}, errors = {}) {
       this.form.setFields({

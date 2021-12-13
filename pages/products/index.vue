@@ -435,7 +435,9 @@ export default {
       formData.append('isIncludedPostage', data.isIncludedPostage === true ? '1' : '0');
       formData.append('asurakuDeliveryId', data.asurakuDeliveryId === true ? '1' : '0');
       formData.append('isDepot', data.isDepot === true ? '1' : '0');
-      formData.append('image', this.imageFile);
+      if (this.imageFile !== null){
+        formData.append('image', this.imageFile);
+      }
 
       await this.$axios.$post('products/' + code, formData, {
         headers: {
@@ -483,7 +485,9 @@ export default {
       formData.append('isIncludedPostage', data.isIncludedPostage === true ? '1' : '0');
       formData.append('asurakuDeliveryId', data.asurakuDeliveryId === true ? '1' : '0');
       formData.append('isDepot', data.isDepot === true ? '1' : '0');
-      formData.append('image', this.imageFile);
+      if (this.imageFile !== null){
+        formData.append('image', this.imageFile);
+      }
 
       await this.$axios.$post('products', formData, {
         headers: {

@@ -106,6 +106,13 @@ a {
 }
 
 body {
+  button{
+    margin-right: 7px;
+    &:last-child{
+      margin-right: 0;
+    }
+  }
+
   .features {
     .feature {
       margin: 0 auto;
@@ -116,6 +123,9 @@ body {
     }
 
     .search-product{
+      .search-group{
+        margin-bottom: 12px;
+      }
       margin-bottom: 12px;
       .search-keyword {
         display: flex;
@@ -136,7 +146,6 @@ body {
       }
       .group-action{
         float: right;
-        margin-bottom: 24px;
       }
     }
 
@@ -283,10 +292,6 @@ body {
       background: #fff;
       text-align: right;
       z-index: 1;
-
-      .btn-close {
-        margin-left: 8px;
-      }
     }
 
     .block-product {

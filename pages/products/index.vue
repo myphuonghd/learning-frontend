@@ -5,45 +5,23 @@
     <div class="search-product">
       <a-row :gutter="24">
         <a-col :lg="{ span: 24, offset: 0 }" :xl="{ span: 16, offset: 4 }">
-          <div class="search-keyword">
+          <div class="search-group search-keyword">
             <div class="search-bar">
               <a-input-search
                 placeholder="Enter product code or product name"
                 :loading="loading"
-                @search="onSearch"
+                @search="onSearchKeyword"
               />
             </div>
           </div>
-          <div class="search-condition">
-            <a-tree
-              :selectable="false"
-              :checkable="true"
-              @check="onCheck"
-              @expand="onExpand"
+          <div class="search-group group-action">
+            <a-button
+              type="default"
+              icon="filter"
+              @click="onClickSearchFilter"
             >
-              <a-icon slot="switcherIcon" type="filter"/>
-              <a-tree-node
-                key="0"
-                title="Search condition"
-                :checkable="false"
-                class="chk-search"
-              >
-                <a-tree-node class="chk-item" key="isIncludedTax" title="Taxable" :checkable="true" isLeaf/>
-                <a-tree-node class="chk-item" key="isIncludedPostage" title="Free Ship" :checkable="true" isLeaf/>
-                <a-tree-node class="chk-item" key="asurakuDeliveryId" title="Now Ship" :checkable="true" isLeaf/>
-                <a-tree-node class="chk-item" key="isDepot" title="Hide" :checkable="true" isLeaf/>
-              </a-tree-node>
-            </a-tree>
-          </div>
-          <div class="group-action">
-            <!--            <a-button
-                          type="default"
-                          icon="reload"
-                          :disabled="!this.is_active"
-                          @click="onReload"
-                        >
-                          Clear filter
-                        </a-button>-->
+              Search Filter
+            </a-button>
             <a-button
               type="primary"
               icon="plus"
@@ -260,6 +238,91 @@
         </a-button>
       </div>
     </a-drawer>
+    <a-drawer
+      class="draw-wrap"
+      :title="search.title"
+      :width="440"
+      :visible="search.visible"
+      @close="onCloseSearchFilter"
+    >
+      <a-form layout="vertical">
+        <a-form-item label="Is Taxable ?">
+          <a-radio-group v-model="search.params.isIncludedTax">
+            <a-radio :value="null">
+              <TagYesNo :value="null"/>
+            </a-radio>
+            <a-radio :value="true">
+              <TagYesNo :value="true"/>
+            </a-radio>
+            <a-radio :value="false">
+              <TagYesNo :value="false"/>
+            </a-radio>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item label="Is Free Ship ?">
+          <a-radio-group v-model="search.params.isIncludedPostage">
+            <a-radio :value="null">
+              <TagYesNo :value="null"/>
+            </a-radio>
+            <a-radio :value="true">
+              <TagYesNo :value="true"/>
+            </a-radio>
+            <a-radio :value="false">
+              <TagYesNo :value="false"/>
+            </a-radio>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item label="Is Now Ship ?">
+          <a-radio-group v-model="search.params.asurakuDeliveryId">
+            <a-radio :value="null">
+              <TagYesNo :value="null"/>
+            </a-radio>
+            <a-radio :value="true">
+              <TagYesNo :value="true"/>
+            </a-radio>
+            <a-radio :value="false">
+              <TagYesNo :value="false"/>
+            </a-radio>
+          </a-radio-group>
+        </a-form-item>
+        <a-form-item label="Is Hide ?">
+          <a-radio-group v-model="search.params.isDepot">
+            <a-radio :value="null">
+              <TagYesNo :value="null"/>
+            </a-radio>
+            <a-radio :value="true">
+              <TagYesNo :value="true"/>
+            </a-radio>
+            <a-radio :value="false">
+              <TagYesNo :value="false"/>
+            </a-radio>
+          </a-radio-group>
+        </a-form-item>
+      </a-form>
+      <div class="drawer-footer">
+        <a-button
+          :loading="loading"
+          type="primary"
+          icon="check"
+          @click="onApplyFilter"
+        >
+          Apply
+        </a-button>
+        <a-button :loading="loading"
+                  type="danger"
+                  icon="undo"
+                  @click="onClearFilter"
+        >
+          Clear
+        </a-button>
+        <a-button
+          icon="close-circle"
+          @click="onCloseSearchFilter"
+        >
+          Close
+        </a-button>
+      </div>
+    </a-drawer>
   </div>
 </template>
 <script>
@@ -282,29 +345,34 @@ export default {
   },
   data() {
     return {
-      data:       [],
+      data      : [],
       pagination: {},
-      from:       '-',
-      to:         '-',
-      total:      '-',
-      loading:    true,
+      from      : '-',
+      to        : '-',
+      total     : '-',
+      loading   : true,
       columns,
-      form:       this.$form.createForm(this),
-      product:    {
-        data:           {},
-        loading:        false,
-        image:          null,
-        itemName:       '',
-        visible:        false,
-        is_update:      false,
+      form      : this.$form.createForm(this),
+      product   : {
+        data          : {},
+        loading       : false,
+        image         : null,
+        itemName      : '',
+        visible       : false,
+        is_update     : false,
         loading_submit: false,
       },
-      is_active:  false,
-      params:     {
-        isIncludedTax:     null,
-        isIncludedPostage: null,
-        asurakuDeliveryId: null,
-        isDepot:           null,
+
+      search: {
+        title  : 'Search filter',
+        visible: false,
+        params : {
+          keyword          : '',
+          isIncludedTax    : null,
+          isIncludedPostage: null,
+          asurakuDeliveryId: null,
+          isDepot          : null,
+        },
       },
 
       isEmpty,
@@ -312,8 +380,8 @@ export default {
       formatDate,
       renderRakutenUrl,
 
-      imageUrl:      '',
-      imageFile:     null,
+      imageUrl     : '',
+      imageFile    : null,
       loading_image: false,
     };
   },
@@ -355,46 +423,46 @@ export default {
       }
       return rule_file && isLt2M;
     },
-    onCheck(checkedKeys) {
-      let isIncludedTax     = checkedKeys.indexOf('isIncludedTax') !== -1;
-      let isIncludedPostage = checkedKeys.indexOf('isIncludedPostage') !== -1;
-      let asurakuDeliveryId = checkedKeys.indexOf('asurakuDeliveryId') !== -1;
-      let isDepot           = checkedKeys.indexOf('isDepot') !== -1;
 
-      this.params = {
-        ...this.params,
-        isIncludedTax:     isIncludedTax,
-        isIncludedPostage: isIncludedPostage,
-        asurakuDeliveryId: asurakuDeliveryId,
-        isDepot:           isDepot,
-      }
+    onClickSearchFilter() {
+      this.search.visible = true
     },
-    onExpand(expandedKeys, {expanded}) {
-      if (expanded === false) {
-        this.params = {
-          ...this.params,
-          isIncludedTax:     null,
-          isIncludedPostage: null,
-          asurakuDeliveryId: null,
-          isDepot:           null,
-        }
+    onCloseSearchFilter() {
+      this.search.visible = false;
+    },
+    onApplyFilter() {
+      this.search.visible = false;
+      this.fetch({
+        page: 1,
+      });
+    },
+    onClearFilter() {
+      this.search.params  = {
+        ...this.search.params,
+        isIncludedTax    : null,
+        isIncludedPostage: null,
+        asurakuDeliveryId: null,
+        isDepot          : null,
       }
-      this.is_active = expanded;
+      this.search.visible = false;
+      this.fetchWithFilter();
+    },
+    onSearchKeyword(value) {
+      this.search.params  = {
+        ...this.search.params,
+        keyword: value,
+      }
+      this.fetchWithFilter();
+    },
+    fetchWithFilter() {
+      let params = {...this.search.params};
+      params     = {
+        ...params,
+        page   : 1,
+      }
+      this.fetch(params);
     },
 
-    /* onReload() {
-       this.is_active = false;
-       this.params    = {
-         ...this.params,
-         isIncludedTax    : null,
-         isIncludedPostage: null,
-         asurakuDeliveryId: null,
-         isDepot          : null,
-       }
-       this.fetch({
-         page: 1,
-       });
-     },*/
     onClose() {
       if (this.product.loading_submit !== true) {
         this.product.visible = false;
@@ -411,28 +479,18 @@ export default {
       this.imageUrl      = null;
       this.setFormData();
     },
-
-    onSearch(value) {
-      let params = this.is_active ? {...this.params} : {};
-      params     = {
-        ...params,
-        keyword: value,
-        page:    1,
-      }
-      this.fetch(params);
-    },
     async onUpdate(e) {
       const code                  = e.currentTarget.value
       this.product.loading_submit = true;
       let is_success              = false;
 
       let data = {
-        itemName:          this.form.getFieldValue('itemName'),
-        itemPrice:         this.form.getFieldValue('itemPrice'),
-        isIncludedTax:     this.form.getFieldValue('isIncludedTax'),
+        itemName         : this.form.getFieldValue('itemName'),
+        itemPrice        : this.form.getFieldValue('itemPrice'),
+        isIncludedTax    : this.form.getFieldValue('isIncludedTax'),
         isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
         asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
-        isDepot:           this.form.getFieldValue('isDepot'),
+        isDepot          : this.form.getFieldValue('isDepot'),
       }
 
       let formData = new FormData();
@@ -475,13 +533,13 @@ export default {
       let is_success              = false;
 
       let data = {
-        itemUrl:           this.form.getFieldValue('itemUrl'),
-        itemName:          this.form.getFieldValue('itemName'),
-        itemPrice:         this.form.getFieldValue('itemPrice'),
-        isIncludedTax:     this.form.getFieldValue('isIncludedTax'),
+        itemUrl          : this.form.getFieldValue('itemUrl'),
+        itemName         : this.form.getFieldValue('itemName'),
+        itemPrice        : this.form.getFieldValue('itemPrice'),
+        isIncludedTax    : this.form.getFieldValue('isIncludedTax'),
         isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
         asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
-        isDepot:           this.form.getFieldValue('isDepot'),
+        isDepot          : this.form.getFieldValue('isDepot'),
       }
 
       let formData = new FormData();
@@ -528,12 +586,12 @@ export default {
       }
       const itemName = e.currentTarget.getAttribute('data-name');
       this.$confirm({
-        title:      'Are you sure delete ' + item_url + ' ?',
-        content:    itemName,
-        okText:     'Yes',
-        okType:     'danger',
+        title     : 'Are you sure delete ' + item_url + ' ?',
+        content   : itemName,
+        okText    : 'Yes',
+        okType    : 'danger',
         cancelText: 'No',
-        onOk:       async () => {
+        onOk      : async () => {
           let is_success = false;
           await this.$axios.$delete('products/' + item_url).then(() => {
             is_success = true;
@@ -558,13 +616,13 @@ export default {
       this.product.visible   = true;
 
       let data = {
-        itemUrl:           this.form.getFieldValue('itemUrl'),
-        itemName:          this.form.getFieldValue('itemName'),
-        itemPrice:         this.form.getFieldValue('itemPrice'),
-        isIncludedTax:     this.form.getFieldValue('isIncludedTax'),
+        itemUrl          : this.form.getFieldValue('itemUrl'),
+        itemName         : this.form.getFieldValue('itemName'),
+        itemPrice        : this.form.getFieldValue('itemPrice'),
+        isIncludedTax    : this.form.getFieldValue('isIncludedTax'),
         isIncludedPostage: this.form.getFieldValue('isIncludedPostage'),
         asurakuDeliveryId: this.form.getFieldValue('asurakuDeliveryId'),
-        isDepot:           this.form.getFieldValue('isDepot'),
+        isDepot          : this.form.getFieldValue('isDepot'),
       }
       await this.setFormData(data)
     },
@@ -605,8 +663,8 @@ export default {
 
       this.fetch({
         results: pagination.pageSize,
-        page:    pagination.current,
-        sort:    order,
+        page   : pagination.current,
+        sort   : order,
       });
     },
     async fetch(params = {}) {
@@ -639,32 +697,32 @@ export default {
     },
     setFormData(data = {}, errors = {}) {
       this.form.setFields({
-        'itemUrl':           {
-          value:  data.itemUrl,
+        'itemUrl'          : {
+          value : data.itemUrl,
           errors: errors.itemUrl !== undefined ? [
             {
               "message": errors.itemUrl,
             }
           ] : null
         },
-        'itemName':          {
-          value:  data.itemName,
+        'itemName'         : {
+          value : data.itemName,
           errors: errors.itemName !== undefined ? [
             {
               "message": errors.itemName,
             }
           ] : null
         },
-        'itemPrice':         {
-          value:  data.itemPrice,
+        'itemPrice'        : {
+          value : data.itemPrice,
           errors: errors.itemPrice !== undefined ? [
             {
               "message": errors.itemPrice,
             }
           ] : null
         },
-        'isIncludedTax':     {
-          value:  data.isIncludedTax === true,
+        'isIncludedTax'    : {
+          value : data.isIncludedTax === true,
           errors: errors.isIncludedTax !== undefined ? [
             {
               "message": errors.isIncludedTax,
@@ -672,7 +730,7 @@ export default {
           ] : null
         },
         'isIncludedPostage': {
-          value:  data.isIncludedPostage === true,
+          value : data.isIncludedPostage === true,
           errors: errors.isIncludedPostage !== undefined ? [
             {
               "message": errors.isIncludedPostage,
@@ -680,15 +738,15 @@ export default {
           ] : null
         },
         'asurakuDeliveryId': {
-          value:  data.asurakuDeliveryId === true,
+          value : data.asurakuDeliveryId === true,
           errors: errors.asurakuDeliveryId !== undefined ? [
             {
               "message": errors.asurakuDeliveryId,
             }
           ] : null
         },
-        'isDepot':           {
-          value:  data.isDepot === true,
+        'isDepot'          : {
+          value : data.isDepot === true,
           errors: errors.isDepot !== undefined ? [
             {
               "message": errors.isDepot,
@@ -702,77 +760,77 @@ export default {
 
 const columns = [
   {
-    title:       'Code',
-    dataIndex:   'itemUrl',
-    width:       '100px',
-    align:       'center',
+    title      : 'Code',
+    dataIndex  : 'itemUrl',
+    width      : '100px',
+    align      : 'center',
     scopedSlots: {
       customRender: 'slot-item-url',
     },
   },
   {
-    title:       'Image',
-    dataIndex:   'image',
-    align:       'center',
-    width:       '80px',
+    title      : 'Image',
+    dataIndex  : 'image',
+    align      : 'center',
+    width      : '80px',
     scopedSlots: {
       customRender: 'slot-image',
     },
   },
   {
-    title:     'Name',
+    title    : 'Name',
     dataIndex: 'itemName',
   },
   {
-    title:       'Price',
-    dataIndex:   'itemPrice',
-    align:       'center',
-    width:       '100px',
+    title      : 'Price',
+    dataIndex  : 'itemPrice',
+    align      : 'center',
+    width      : '100px',
     scopedSlots: {
       customRender: 'slot-price',
     },
   },
   {
-    title:       'Taxable',
-    dataIndex:   'isIncludedTax',
-    width:       '100px',
-    align:       'center',
+    title      : 'Taxable',
+    dataIndex  : 'isIncludedTax',
+    width      : '100px',
+    align      : 'center',
     scopedSlots: {
       customRender: 'slot-taxable',
     },
   },
   {
-    title:       'Free Ship',
-    dataIndex:   'isIncludedPostage',
-    width:       '100px',
-    align:       'center',
+    title      : 'Free Ship',
+    dataIndex  : 'isIncludedPostage',
+    width      : '100px',
+    align      : 'center',
     scopedSlots: {
       customRender: 'slot-free-ship',
     },
   },
   {
-    title:       'Now Ship',
-    dataIndex:   'asurakuDeliveryId',
-    width:       '100px',
-    align:       'center',
+    title      : 'Now Ship',
+    dataIndex  : 'asurakuDeliveryId',
+    width      : '100px',
+    align      : 'center',
     scopedSlots: {
       customRender: 'slot-now-ship',
     },
   },
   {
-    title:       'Hide',
-    dataIndex:   'isDepot',
-    width:       '100px',
-    align:       'center',
+    title      : 'Hide',
+    dataIndex  : 'isDepot',
+    width      : '100px',
+    align      : 'center',
     scopedSlots: {
       customRender: 'slot-hide',
     },
   },
   {
-    title:       'Action',
-    dataIndex:   'action',
-    width:       100,
-    align:       'center',
+    title      : 'Action',
+    dataIndex  : 'action',
+    width      : 100,
+    align      : 'center',
     scopedSlots: {
       customRender: 'slot-action',
     },
@@ -802,11 +860,11 @@ function formatNumber(value) {
 function formatDate(value) {
   let date = new Date(value)
   return date.getFullYear() + "/" + ("00" + (date.getMonth() + 1)).slice(-2) + "/" +
-         ("00" + date.getDate()).slice(-2) +
-         " " +
-         ("00" + date.getHours()).slice(-2) + ":" +
-         ("00" + date.getMinutes()).slice(-2) + ":" +
-         ("00" + date.getSeconds()).slice(-2);
+    ("00" + date.getDate()).slice(-2) +
+    " " +
+    ("00" + date.getHours()).slice(-2) + ":" +
+    ("00" + date.getMinutes()).slice(-2) + ":" +
+    ("00" + date.getSeconds()).slice(-2);
 }
 
 function renderRakutenUrl(item_url) {

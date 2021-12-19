@@ -1,6 +1,6 @@
 <template>
-  <a-tag :color="bool ? 'green' : 'red'">
-    {{ bool ? 'Yes' : 'No' }}
+  <a-tag :color="color">
+    {{ label }}
   </a-tag>
 </template>
 <script>
@@ -9,12 +9,23 @@ export default {
 
   data() {
     return {
-      bool: false
+      bool : false,
+      color: '',
+      label: '',
     }
   },
 
   mounted() {
-    this.bool = this.value === 1 || this.value === '1' || this.value === true || this.value === 'true' || this.value === 'TRUE';
+    if (this.value === null || this.value === 'null' || this.value === 'NULL') {
+      this.bool  = null;
+      this.color = '';
+      this.label = 'All';
+    } else {
+      this.bool = this.value === 1 || this.value === '1' || this.value === true || this.value === 'true' || this.value === 'TRUE';
+
+      this.color = this.bool ? 'green' : 'red';
+      this.label = this.bool ? 'Yes' : 'No';
+    }
   }
 }
 </script>

@@ -16,14 +16,14 @@
           </div>
           <div class="search-group group-action">
             <a-button
-              type="default"
+              type="dashed"
               icon="filter"
               @click="onClickSearchFilter"
             >
-              Search Filter
+              {{ search.title }}
             </a-button>
             <a-button
-              type="primary"
+              type="default"
               icon="plus"
               @click="handleBtnAdd"
             >
@@ -224,16 +224,30 @@
       </template>
       <div class="drawer-footer">
         <template v-if="product.is_update">
-          <a-button :loading="product.loading_submit" :value="product.itemUrl" type="primary" @click="onUpdate">
+          <a-button
+            :loading="product.loading_submit"
+            :value="product.itemUrl"
+            type="primary"
+            icon="edit"
+            @click="onUpdate"
+          >
             Update
           </a-button>
         </template>
         <template v-else>
-          <a-button :loading="product.loading_submit" type="primary" @click="onStore">
+          <a-button
+            :loading="product.loading_submit"
+            type="primary"
+            @click="onStore"
+            icon="form"
+          >
             Post
           </a-button>
         </template>
-        <a-button class="btn-close" @click="onClose">
+        <a-button
+          icon="close"
+          @click="onClose"
+        >
           Cancel
         </a-button>
       </div>
@@ -316,10 +330,10 @@
           Clear
         </a-button>
         <a-button
-          icon="close-circle"
+          icon="close"
           @click="onCloseSearchFilter"
         >
-          Close
+          Cancel
         </a-button>
       </div>
     </a-drawer>
@@ -364,7 +378,7 @@ export default {
       },
 
       search: {
-        title  : 'Search filter',
+        title  : 'Search Filter',
         visible: false,
         params : {
           keyword          : '',
@@ -446,7 +460,7 @@ export default {
       this.fetchWithFilter();
     },
     onSearchKeyword(value) {
-      this.search.params  = {
+      this.search.params = {
         ...this.search.params,
         keyword: value,
       }
@@ -456,7 +470,7 @@ export default {
       let params = {...this.search.params};
       params     = {
         ...params,
-        page   : 1,
+        page: 1,
       }
       this.fetch(params);
     },

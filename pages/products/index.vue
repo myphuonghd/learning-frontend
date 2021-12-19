@@ -80,7 +80,7 @@
             <a-empty :description="false" :image="no_image"/>
           </template>
           <template v-else>
-            <img :alt="product.itemName" :src="image"/>
+            <img alt="" :src="image"/>
           </template>
         </div>
       </template>
@@ -145,7 +145,7 @@
                   <a-empty :description="false" :image="this.no_image"/>
                 </template>
                 <template v-else>
-                  <img slot="cover" :src="product.data.image"/>
+                  <img slot="cover" :src="product.data.image" alt=""/>
                 </template>
               </div>
             </a-col>

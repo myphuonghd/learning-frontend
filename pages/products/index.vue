@@ -39,7 +39,7 @@
         }}</span> of <span class="overview-value">{{ this.total }}</span> rows.</span>
     </div>
     <a-table
-      :scroll="{ x: 1366 }"
+      :scroll="{ x: 1200 }"
       :columns="columns"
       :row-key="record => record.itemUrl"
       :data-source="data"
@@ -432,9 +432,7 @@ export default {
     },
     onApplyFilter() {
       this.search.visible = false;
-      this.fetch({
-        page: 1,
-      });
+      this.fetchWithFilter();
     },
     onClearFilter() {
       this.search.params  = {
@@ -829,7 +827,7 @@ const columns = [
   {
     title      : 'Action',
     dataIndex  : 'action',
-    width      : 100,
+    width      : 120,
     align      : 'center',
     scopedSlots: {
       customRender: 'slot-action',

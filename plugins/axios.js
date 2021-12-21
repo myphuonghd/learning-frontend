@@ -10,7 +10,7 @@ export default function ({$axios, store, redirect}) {
     }
     else if (error.response.status === 401) {
       message.error('Oops!...Session has expired, please login again.')
-      store.$auth.logout();
+      store.$auth.reset();
     }
     else {
       message.error('There are some problems with your operation.')
